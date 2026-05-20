@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Header from './components/layout/Header';
-import MatrizTab from './components/MatrizTab';
-import JugadoresTab from './components/JugadoresTab';
-import GuildsTab from './components/GuildsTab';
+import MatrizTab from './components/tabs/MatrizTab/MatrizTab';
+import JugadoresTab from './components/tabs/JugadoresTab/JugadoresTab';
+import GuildsTab from './components/tabs/GuildTab/GuildTab';
 
 export default function App() {
     const [activeTab, setActiveTab] = useState('matriz');
