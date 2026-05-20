@@ -6,7 +6,6 @@ import ActiveManagementPanel from './ActiveManagementPanel';
 export default function MatrizTab() {
     const [guilds, setGuilds] = useState([]);
     const [selectedGuild, setSelectedGuild] = useState('');
-    const [sessionName, setSessionName] = useState('');
     const [raidType, setRaidType] = useState('ICC');
     const [raidNotes, setRaidNotes] = useState('');
     const [jsonText, setJsonText] = useState('');
@@ -52,12 +51,53 @@ export default function MatrizTab() {
         }
     }
 
-    async function handleProcesar() {
+async function handleStartSession() {
+        let datosAEnviar = datosRaidTemporal;
 
+        // Si el usuario no usó el botón de analizar, estructuramos los datos exactamente igual
+        if (!datosAEnviar) {
+            try {
+                const raidersParsed = JSON.parse(jsonText);
+
+                datosAEnviar = {
+                    guildId: Number(selectedGuild),
+                    instance: raidType, // Mismo nombre que en handleProcesar
+                    notes: raidNotes,   // Mismo nombre que en handleProcesar
+                    currentTime: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+                    raiders: raidersParsed
+                };
+            } catch (error) {
+                alert("El formato del JSON es inválido. Revísalo bien antes de enviarlo.");
+                console.error(error);
+                return;
+            }
+        }
+
+        // Bloque de inserción en SQLite
+        try {
+            setLoading(true);
+            await window.apiDB.insertRaidSession(datosAEnviar);
+            
+            setStatus('✓ SESIÓN INICIADA');
+            setJsonText('');
+            setRaiders([]);
+            setDatosRaidTemporal(null);
+            setRaidType('ICC');
+            setRaidNotes('');
+            await loadActiveSession();
+        } catch (err) {
+            alert('Error al iniciar la sesión en la base de datos local SQLite.');
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    async function handleProcesar() {
         setLoading(true);
 
-        if (!selectedGuild || !sessionName || !jsonText.trim()) {
-            alert('Asigna una Guild, un nombre de sesión y rellena el log JSON antes de analizar.');
+        if (!selectedGuild || selectedGuild === "" ||!jsonText.trim()) {
+            alert('Asigna una Guild y rellena el log JSON antes de analizar.');
             setLoading(false);
             return;
         }
@@ -76,7 +116,6 @@ export default function MatrizTab() {
             setRaiders(raidersData);
             setDatosRaidTemporal({
                 guildId: Number(selectedGuild),
-                sessionName: sessionName,
                 instance: raidType,
                 notes: raidNotes,
                 currentTime: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
@@ -86,28 +125,8 @@ export default function MatrizTab() {
         } catch (err) {
             alert('Error crítico al leer el JSON: Asegúrate de que el formato sea correcto.');
             console.error(err);
-        }
-    }
-
-    async function handleStartSession() {
-        if (!datosRaidTemporal) return;
-
-        try {
-            setLoading(true);
-            await window.apiDB.insertRaidSession(datosRaidTemporal);
-            setStatus('✓ SESIÓN INICIADA');
-            setJsonText('');
-            setRaiders([]);
-            setDatosRaidTemporal(null);
-            setSessionName('');
-            setRaidType('ICC');
-            setRaidNotes('');
-            await loadActiveSession();
-        } catch (err) {
-            alert('Error al iniciar la sesión en la base de datos local SQLite.');
-            console.error(err);
         } finally {
-            setLoading(false);
+            setLoading(false); // Faltaba asegurar el apagado del loading en el éxito de tu código original
         }
     }
 
@@ -172,8 +191,6 @@ export default function MatrizTab() {
                             guilds={guilds}
                             selectedGuild={selectedGuild}
                             setSelectedGuild={setSelectedGuild}
-                            sessionName={sessionName}
-                            setSessionName={setSessionName}
                             raidType={raidType}
                             setRaidType={setRaidType}
                             raidNotes={raidNotes}

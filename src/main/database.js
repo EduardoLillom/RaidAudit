@@ -33,7 +33,6 @@ function initDatabase() {
 
         CREATE TABLE IF NOT EXISTS sessions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
             instance TEXT NOT NULL DEFAULT 'ICC',
             notes TEXT DEFAULT '',
             date DATETIME NOT NULL,
@@ -93,7 +92,7 @@ function getGuildHistory(guildId) {
 
 function getActiveSession() {
     // CORREGIDO: .prepare().get()
-    return db.prepare('SELECT id, name, instance, notes, guild_id, date, start_time, end_time, status FROM sessions WHERE status = ? ORDER BY date DESC LIMIT 1').get('active');
+    return db.prepare('SELECT id, instance, notes, guild_id, date, start_time, end_time, status FROM sessions WHERE status = ? ORDER BY date DESC LIMIT 1').get('active');
 }
 
 function getPlayerProfile(playerId) {
@@ -159,9 +158,8 @@ function insertRaidSession(data) {
     try {
         // CORREGIDO: .prepare().run() y se usa lastInsertRowid en lugar de lastID
         const result = db.prepare(
-            `INSERT INTO sessions (name, instance, notes, date, start_time, guild_id) VALUES (?, ?, ?, datetime('now'), ?, ?)`
+            `INSERT INTO sessions (instance, notes, date, start_time, guild_id) VALUES (?, ?, datetime('now'), ?, ?)`
         ).run(
-            data.sessionName,
             data.instance || 'ICC',
             data.notes || '',
             data.currentTime,
