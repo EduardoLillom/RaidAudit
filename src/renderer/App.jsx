@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Header from './components/Header';
+import Header from './components/layout/Header';
 import MatrizTab from './components/MatrizTab';
 import JugadoresTab from './components/JugadoresTab';
 import GuildsTab from './components/GuildsTab';
