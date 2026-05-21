@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, shell } from 'electron'; // 1. Agregado 'shell' aquí
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dbmanager } from './database.js';
@@ -44,7 +44,7 @@ app.whenReady().then(() => {
 
     createWindow();
     
-    // IPC Handlers
+    // IPC Handlers de la Base de Datos
     ipcMain.handle('db:getAllGuilds', () => dbmanager.getAllGuilds());
     ipcMain.handle('db:getGuildHistory', (event, guildId) => dbmanager.getGuildHistory(guildId));
     ipcMain.handle('db:getPlayerProfile', (event, playerId) => dbmanager.getPlayerProfile(playerId));
@@ -55,6 +55,17 @@ app.whenReady().then(() => {
     ipcMain.handle('db:removeRaiderFromSession', (event, sessionId, raiderId) => dbmanager.removeRaiderFromSession(sessionId, raiderId));
     ipcMain.handle('db:getActiveSession', () => dbmanager.getActiveSession());
     ipcMain.handle('db:getSessionRaiders', (event, sessionId) => dbmanager.getSessionRaiders(sessionId));
+
+    // 2. NUEVO: Handler dedicado para abrir URLs en el navegador del sistema operativo
+    ipcMain.handle('open-external-url', async (event, url) => {
+        try {
+            await shell.openExternal(url);
+            return { success: true };
+        } catch (error) {
+            console.error('Error abriendo enlace externo:', error);
+            return { success: false, error: error.message };
+        }
+    });
 });
 
 app.on('window-all-closed', () => {
