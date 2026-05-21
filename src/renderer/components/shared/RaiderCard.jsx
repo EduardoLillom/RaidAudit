@@ -28,13 +28,11 @@ export default function RaiderCard({ raider, onOpenNotes }) {
     const REALM = 'Icecrown'; 
     const armoryUrl = `https://armory.warmane.com/character/${encodeURIComponent(raider.name)}/${REALM}/summary`;
 
-    // Función para manejar el clic de forma nativa en el sistema operativo
     const handleNameClick = (e) => {
         e.preventDefault();
         if (window.apiDB?.openExternalLink) {
             window.apiDB.openExternalLink(armoryUrl);
         } else {
-            // Fallback por si lo pruebas en un navegador web normal de desarrollo
             window.open(armoryUrl, '_blank');
         }
     };
@@ -54,35 +52,48 @@ export default function RaiderCard({ raider, onOpenNotes }) {
     }
 
     return (
-        <div className={`rounded bg-gradient-to-br ${classStyle.bg} flex flex-col justify-between p-2.5 h-full min-h-[80px] border border-[#24283b] border-l-4 ${alertBorder} shadow-md group relative`}>
-                    <div>
-                        <div className="flex justify-between items-center gap-1 mb-0.5">
-                            <button 
-                                onClick={handleNameClick}
-                                className={`font-bold text-[13px] truncate text-left ${classStyle.text} hover:underline cursor-pointer`}
-                            >
-                                {raider.name}
-                            </button>
-                            {alertBadge}
-                        </div>
-                        
-                        {/* Contenedor de la clase + Botón de notas rápido al pasar el mouse */}
-                        <div className="flex justify-between items-center mt-0.5">
-                            <span className="text-[9px] uppercase text-[#565f89] tracking-widest font-semibold font-mono">
-                                {raider.class}
-                            </span>
-                            
-                            {/* Botón discreto que aparece al hacer Hover en la tarjeta */}
-                            <button
-                                onClick={() => onOpenNotes(raider)}
-                                className="text-[9px] bg-[#1f2335] border border-[#414868]/60 text-gray-400 hover:text-white hover:border-[#7dcfff] px-1.5 py-0.5 rounded font-mono transition-all opacity-60 group-hover:opacity-100"
-                            >
-                                📝 NOTA
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* ... Fila inferior de contadores L:0 M:0 H:0 que ya tenías ... */}
+        <div className={`rounded bg-gradient-to-br ${classStyle.bg} flex flex-col justify-between p-2.5 h-full min-h-[85px] border border-[#24283b] border-l-4 ${alertBorder} shadow-md group relative select-none`}>
+            <div>
+                <div className="flex justify-between items-center gap-1 mb-0.5">
+                    <button 
+                        onClick={handleNameClick}
+                        className={`font-bold text-[12px] truncate text-left ${classStyle.text} hover:underline cursor-pointer`}
+                    >
+                        {raider.name}
+                    </button>
+                    {alertBadge}
                 </div>
+                
+                <div className="flex justify-between items-center mt-1">
+                    <span className="text-[9px] uppercase text-[#565f89] tracking-widest font-semibold font-mono">
+                        {raider.class}
+                    </span>
+                    
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation(); // Evita interferencias con el arrastre
+                            onOpenNotes(raider);
+                        }}
+                        className="text-[9px] bg-[#1f2335] border border-[#414868]/60 text-gray-400 hover:text-white hover:border-[#7dcfff] px-1.5 py-0.5 rounded font-mono transition-all opacity-40 group-hover:opacity-100"
+                    >
+                        📝 NOTA
+                    </button>
+                </div>
+            </div>
+
+            {/* Fila inferior de contadores */}
+            <div className="flex justify-between items-center mt-1.5 pt-1 border-t border-[#24283b]/40 text-[10px] font-mono text-[#565f89]">
+                <div className="flex gap-1.5">
+                    <span>L:<span className={lows > 0 ? "text-[#7dcfff] font-bold" : ""}>{lows}</span></span>
+                    <span>M:<span className={mediums > 0 ? "text-[#e0af68] font-bold" : ""}>{mediums}</span></span>
+                    <span>H:<span className={highs > 0 ? "text-[#c41f3b] font-bold" : ""}>{highs}</span></span>
+                </div>
+                {gravityTotal > 0 && (
+                    <span className="text-[9px] bg-[#24283b] px-1 rounded text-gray-400">
+                        {gravityTotal} pts
+                    </span>
+                )}
+            </div>
+        </div>
     );
 }

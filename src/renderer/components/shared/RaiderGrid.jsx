@@ -2,43 +2,36 @@ import React, { useState } from 'react';
 import RaiderCard from './RaiderCard';
 import RaiderNotesModal from './RaiderNotesModal';
 
-// CORREGIDO: Agregamos 'activeSession' en las props de entrada
-export default function RaiderGrid({ raiders, activeSession }) {
-    const slots = Array.from({ length: 25 }, (_, i) => raiders[i] || null);
+export default function RaiderGrid({ raiders, activeSession, onReorderRaiders }) {
+    // 🛠️ CORREGIDO: Buscamos qué raider pertenece a qué slot del 0 al 24
+    const slots = Array.from({ length: 25 }, (_, i) => {
+        if (activeSession) {
+            // Si la sesión ya inició en BD, tu array viene indexado del 0 al 24 secuencialmente
+            return raiders[i] || null;
+        }
+        // Si estamos previsualizando, buscamos por la propiedad explicita .slot
+        return raiders.find(r => r.slot === i) || null;
+    });
 
-    // Estado para capturar el objeto completo del raider que se va a editar
     const [activeRaider, setActiveRaider] = useState(null);
 
     const handleSaveNote = async (raiderId, text, severity) => {
         try {
-            // CORREGIDO: 'activeSession' ahora sí existe gracias a las props superiores
             const currentSessionId = activeSession?.id || null; 
 
-            console.log(`Enviando a BD -> Raider ID: ${raiderId}, Sesión ID: ${currentSessionId}, Nota: ${text}, Severidad: ${severity}`);
-
             if (window.apiDB?.addRaiderNota) {
-                // Ejecutamos la consulta síncrona en Electron pasándole los 4 parámetros exactos
                 await window.apiDB.addRaiderNota(raiderId, currentSessionId, text, severity);
             }
-
-            // Refrescar los datos locales según el contexto donde estés parado
-            if (currentSessionId) {
-                // Si tienes una función para volver a pedir los raiders actualizados a la BD, la ejecutas aquí:
-                // fetchSessionRaiders(currentSessionId);
-            } else {
-                // Lógica de refresco para paneles administrativos fuera de raid
-            }
-
-            // Cerramos el modal limpiamente
             setActiveRaider(null);
         } catch (error) {
             console.error("Error en el Front al guardar la nota:", error);
         }
     };
 
-    if (slots.every(slot => slot === null)) {
+    // Si no hay datos analizados ni sesión activa, mostramos el panel vacío original
+    if (!activeSession && raiders.length === 0) {
         return (
-            <div className="flex-1 min-h-[450px] flex items-center justify-center border border-dashed border-[#414868]/30 rounded-lg bg-[#1a1b26]/40 m-1">
+            <div className="flex-1 min-h-[400px] flex items-center justify-center border border-dashed border-[#414868]/30 rounded-lg bg-[#1a1b26]/40 m-1">
                 <div className="text-sm text-[#565f89] font-mono uppercase tracking-widest animate-pulse">[ Esperando volcado JSON ]</div>
             </div>
         );
@@ -46,14 +39,30 @@ export default function RaiderGrid({ raiders, activeSession }) {
 
     return (
         <div className="flex-1 relative">
-            {/* Cuadrícula de la Banda */}
-            <div className="grid grid-cols-5 gap-2.5 p-1 overflow-y-auto max-h-[calc(100vh-180px)]">
+            <div className="grid grid-cols-5 gap-2.5 p-1 overflow-y-auto max-h-[calc(100vh-320px)]">
                 {slots.map((raider, index) => (
-                    <div key={index} className="h-full">
+                    <div 
+                        key={index} 
+                        className="h-full"
+                        onDragOver={(e) => e.preventDefault()} // Permitir Drop
+                        onDrop={(e) => {
+                            e.preventDefault();
+                            const raiderName = e.dataTransfer.getData("text/plain");
+                            if (!activeSession && onReorderRaiders) {
+                                onReorderRaiders(raiderName, index); // Mueve al slot i de la raid
+                            }
+                        }}
+                    >
                         {raider ? (
-                            <RaiderCard raider={raider} onOpenNotes={setActiveRaider} />
+                            <div 
+                                draggable={!activeSession} // Bloqueado si la raid ya empezó
+                                onDragStart={(e) => e.dataTransfer.setData("text/plain", raider.name)}
+                                className={`${!activeSession ? 'cursor-grab active:cursor-grabbing' : ''} h-full transition-transform duration-150`}
+                            >
+                                <RaiderCard raider={raider} onOpenNotes={setActiveRaider} />
+                            </div>
                         ) : (
-                            <div className="rounded border border-dashed border-[#24283b] flex flex-col items-center justify-center bg-[#1f2335]/20 h-full min-h-[80px] opacity-40">
+                            <div className="rounded border border-dashed border-[#24283b] flex flex-col items-center justify-center bg-[#1f2335]/20 h-full min-h-[80px] opacity-40 transition-colors hover:bg-[#1f2335]/40">
                                 <span className="text-[10px] font-mono text-[#565f89]">G{Math.floor(index / 5) + 1}</span>
                             </div>
                         )}
@@ -61,7 +70,6 @@ export default function RaiderGrid({ raiders, activeSession }) {
                 ))}
             </div>
 
-            {/* Modal Condicional */}
             <RaiderNotesModal 
                 raider={activeRaider} 
                 onClose={() => setActiveRaider(null)} 
