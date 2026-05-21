@@ -13,7 +13,7 @@ const classColors = {
     DEATHKNIGHT: { text: 'text-[#c41f3b]', bg: 'from-[#c41f3b]/10 to-[#c41f3b]/5' }
 };
 
-export default function RaiderCard({ raider }) {
+export default function RaiderCard({ raider, onOpenNotes }) {
     const classKey = raider.class ? raider.class.toUpperCase().replace(/\s+/g, '') : '';
     const classStyle = classColors[classKey] || { 
         text: 'text-gray-200', 
@@ -54,41 +54,35 @@ export default function RaiderCard({ raider }) {
     }
 
     return (
-        <div className={`rounded bg-gradient-to-br ${classStyle.bg} flex flex-col justify-between p-2.5 h-full min-h-[80px] transition-all duration-200 border border-[#24283b] border-l-4 ${alertBorder} hover:border-r-[#414868] shadow-md`}>
-            <div>
-                <div className="flex justify-between items-center gap-1 mb-0.5">
-                    {/* Usamos un botón estilizado como enlace para evitar la pestaña huérfana de Electron */}
-                    <button 
-                        onClick={handleNameClick}
-                        className={`font-bold text-[13px] truncate tracking-wide text-left ${classStyle.text} hover:underline cursor-pointer transition-all block max-w-[70%] bg-transparent border-none p-0 outline-none`}
-                        title={`Ver armería de ${raider.name}`}
-                    >
-                        {raider.name}
-                    </button>
-                    {alertBadge}
+        <div className={`rounded bg-gradient-to-br ${classStyle.bg} flex flex-col justify-between p-2.5 h-full min-h-[80px] border border-[#24283b] border-l-4 ${alertBorder} shadow-md group relative`}>
+                    <div>
+                        <div className="flex justify-between items-center gap-1 mb-0.5">
+                            <button 
+                                onClick={handleNameClick}
+                                className={`font-bold text-[13px] truncate text-left ${classStyle.text} hover:underline cursor-pointer`}
+                            >
+                                {raider.name}
+                            </button>
+                            {alertBadge}
+                        </div>
+                        
+                        {/* Contenedor de la clase + Botón de notas rápido al pasar el mouse */}
+                        <div className="flex justify-between items-center mt-0.5">
+                            <span className="text-[9px] uppercase text-[#565f89] tracking-widest font-semibold font-mono">
+                                {raider.class}
+                            </span>
+                            
+                            {/* Botón discreto que aparece al hacer Hover en la tarjeta */}
+                            <button
+                                onClick={() => onOpenNotes(raider)}
+                                className="text-[9px] bg-[#1f2335] border border-[#414868]/60 text-gray-400 hover:text-white hover:border-[#7dcfff] px-1.5 py-0.5 rounded font-mono transition-all opacity-60 group-hover:opacity-100"
+                            >
+                                📝 NOTA
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* ... Fila inferior de contadores L:0 M:0 H:0 que ya tenías ... */}
                 </div>
-                <div className="text-[9px] uppercase text-[#565f89] tracking-widest font-semibold font-mono">
-                    {raider.class}
-                </div>
-            </div>
-            
-            <div className="flex items-center gap-1.5 text-[10px] font-mono mt-2 pt-1.5 border-t border-[#24283b]/60">
-                <span className={`px-1 rounded ${lows > 0 ? 'text-[#7dcfff] bg-[#7dcfff]/10 font-bold' : 'text-[#565f89]'}`}>
-                    L:{lows}
-                </span>
-                <span className={`px-1 rounded ${mediums > 0 ? 'text-[#e0af68] bg-[#e0af68]/10 font-bold' : 'text-[#565f89]'}`}>
-                    M:{mediums}
-                </span>
-                <span className={`px-1 rounded ${highs > 0 ? 'text-[#c41f3b] bg-[#c41f3b]/10 font-bold' : 'text-[#565f89]'}`}>
-                    H:{highs}
-                </span>
-                
-                {gravityTotal > 0 && (
-                    <span className="ml-auto text-[10px] bg-[#1f2335] px-1.5 py-0.5 rounded border border-[#24283b] text-gray-300 font-bold">
-                        {gravityTotal}
-                    </span>
-                )}
-            </div>
-        </div>
     );
 }

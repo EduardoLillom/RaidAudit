@@ -51,7 +51,7 @@ export default function MatrizTab() {
         }
     }
 
-async function handleStartSession() {
+    async function handleStartSession() {
         let datosAEnviar = datosRaidTemporal;
 
         // Si el usuario no usó el botón de analizar, estructuramos los datos exactamente igual
@@ -107,6 +107,8 @@ async function handleStartSession() {
             
             for (let r of raidersData) {
                 const status = await window.apiDB.getRaiderStatus(r.name);
+
+                r.id = status.id;
                 r.lows = status.lows;
                 r.mediums = status.mediums;
                 r.highs = status.highs;
@@ -228,7 +230,10 @@ async function handleStartSession() {
                     <div className="text-[10px] text-[#565f89]">ESTADO: <span className="text-gray-500 italic">{status}</span></div>
                 </div>
                 
-                <RaiderGrid raiders={activeSession ? sessionRaiders : raiders} />
+                <RaiderGrid 
+                raiders={activeSession ? sessionRaiders : raiders} 
+                activeSession={activeSession}
+                />
             </div>
         </div>
     );

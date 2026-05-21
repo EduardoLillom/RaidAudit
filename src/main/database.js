@@ -113,44 +113,27 @@ function getPlayerProfile(playerId) {
 }
 
 function getRaiderStatus(name) {
-    const cleanName = name ? name.trim() : '';
-
-    const query = `
-        SELECT 
-            r.id,
-            (SELECT note_text FROM raider_notes WHERE raider_id = r.id ORDER BY id DESC LIMIT 1) AS last_note,
-            TOTAL(CASE WHEN i.severity = 'LOW' THEN 1 END) AS lows,
-            TOTAL(CASE WHEN i.severity = 'MEDIUM' THEN 1 END) AS mediums,
-            TOTAL(CASE WHEN i.severity = 'HIGH' THEN 1 END) AS highs,
-            TOTAL(
-                CASE 
-                    WHEN i.severity = 'LOW' THEN 1
-                    WHEN i.severity = 'MEDIUM' THEN 3
-                    WHEN i.severity = 'HIGH' THEN 5
-                    ELSE 0
-                END
-            ) AS gravity_total
-        FROM raiders r
-        LEFT JOIN raider_notes i ON r.id = i.raider_id
-        WHERE UPPER(r.name) = UPPER(?)
-        GROUP BY r.id;
-    `;
-
-    // CORREGIDO: .prepare().get()
-    const row = db.prepare(query).get(cleanName);
+    // Buscamos al raider. Si no existe, podemos retornarlo vacío o crearlo aquí.
+    const raider = db.prepare('SELECT id FROM raiders WHERE UPPER(name) = UPPER(?)').get(name.trim());
     
-    if (row) {
-        return {
-            id: row.id,
-            last_note: row.last_note || '',
-            lows: parseInt(row.lows) || 0,
-            mediums: parseInt(row.mediums) || 0,
-            highs: parseInt(row.highs) || 0,
-            gravity_total: parseInt(row.gravity_total) || 0
-        };
-    }
+    // Tu consulta actual que cuenta lows, mediums, highs...
+    const stats = db.prepare(`
+        SELECT 
+            TOTAL(CASE WHEN severity = 'LOW' THEN 1 END) AS lows,
+            TOTAL(CASE WHEN severity = 'MEDIUM' THEN 1 END) AS mediums,
+            TOTAL(CASE WHEN severity = 'HIGH' THEN 1 END) AS highs,
+            TOTAL(CASE WHEN severity = 'LOW' THEN 1 WHEN severity = 'MEDIUM' THEN 3 WHEN severity = 'HIGH' THEN 5 ELSE 0 END) AS gravity_total
+        FROM raider_notes 
+        WHERE raider_id = ?
+    `).get(raider ? raider.id : 0);
 
-    return { id: null, last_note: '', lows: 0, mediums: 0, highs: 0, gravity_total: 0 };
+    return {
+        id: raider ? raider.id : null, // 👈 ¡Retornamos la ID real de la BD!
+        lows: stats.lows,
+        mediums: stats.mediums,
+        highs: stats.highs,
+        gravity_total: stats.gravity_total
+    };
 }
 
 function insertRaidSession(data) {
@@ -208,16 +191,66 @@ function addRaiderToSession(sessionId, raiderName, raiderClass, subgroup = 1) {
     }
 }
 
+function addRaiderNota(raiderId, sessionId, noteText, severity) {
+    // El raiderId SÍ es obligatorio siempre
+    if (!raiderId) {
+        throw new Error('No se puede guardar una nota sin especificar el ID del Raider.');
+    }
+
+    db.exec('BEGIN TRANSACTION;');
+    try {
+        const result = db.prepare(`
+            INSERT INTO raider_notes (raider_id, session_id, note_text, severity) 
+            VALUES (?, ?, ?, ?)
+        `).run(
+            Number(raiderId),
+            sessionId ? Number(sessionId) : null, // 👈 SI es null, guarda NULL en SQLite limpiamente
+            String(noteText || ''),
+            String(severity || 'LOW')
+        );
+
+        db.exec('COMMIT;');
+        return result.lastInsertRowid; 
+    } catch (error) {
+        db.exec('ROLLBACK;');
+        console.error('Error al insertar la nota del raider:', error);
+        throw error;
+    }
+}
+
 function removeRaiderFromSession(sessionId, raiderId) {
     // CORREGIDO: .prepare().run()
     db.prepare('DELETE FROM session_raiders WHERE session_id = ? AND raider_id = ?').run(sessionId, raiderId);
 }
 
 function getSessionRaiders(sessionId) {
-    // CORREGIDO: .prepare().all()
-    return db.prepare(
-        'SELECT sr.raider_id, r.name, r.class, sr.subgroup FROM session_raiders sr JOIN raiders r ON sr.raider_id = r.id WHERE sr.session_id = ? ORDER BY sr.subgroup'
-    ).all(sessionId);
+    const query = `
+        SELECT 
+            sr.raider_id AS id, 
+            r.name, 
+            r.class, 
+            sr.subgroup,
+            (SELECT note_text FROM raider_notes WHERE raider_id = r.id ORDER BY id DESC LIMIT 1) AS last_note,
+            TOTAL(CASE WHEN rn.severity = 'LOW' THEN 1 END) AS lows,
+            TOTAL(CASE WHEN rn.severity = 'MEDIUM' THEN 1 END) AS mediums,
+            TOTAL(CASE WHEN rn.severity = 'HIGH' THEN 1 END) AS highs,
+            TOTAL(
+                CASE 
+                    WHEN rn.severity = 'LOW' THEN 1
+                    WHEN rn.severity = 'MEDIUM' THEN 3
+                    WHEN rn.severity = 'HIGH' THEN 5
+                    ELSE 0
+                END
+            ) AS gravedad_total
+        FROM session_raiders sr 
+        JOIN raiders r ON sr.raider_id = r.id 
+        LEFT JOIN raider_notes rn ON r.id = rn.raider_id
+        WHERE sr.session_id = ? 
+        GROUP BY r.id
+        ORDER BY sr.subgroup ASC, r.name ASC
+    `;
+
+    return db.prepare(query).all(sessionId);
 }
 
 const dbmanager = {
@@ -232,6 +265,7 @@ const dbmanager = {
     removeRaiderFromSession,
     getActiveSession,
     getSessionRaiders,
+    addRaiderNota,
 };
 
 export { dbmanager };

@@ -12,5 +12,6 @@ contextBridge.exposeInMainWorld('apiDB', {
     removeRaiderFromSession: (sessionId, raiderId) => ipcRenderer.invoke('db:removeRaiderFromSession', sessionId, raiderId),
     getActiveSession: () => ipcRenderer.invoke('db:getActiveSession'),
     getSessionRaiders: (sessionId) => ipcRenderer.invoke('db:getSessionRaiders', sessionId),
+    addRaiderNota: (raiderId, sessionId, noteText, severity) => ipcRenderer.invoke('db:addRaiderNota', raiderId, sessionId, noteText, severity),
     openExternalLink: (url) => ipcRenderer.invoke('open-external-url', url),
 });
