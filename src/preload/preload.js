@@ -15,4 +15,5 @@ contextBridge.exposeInMainWorld('apiDB', {
     addRaiderNota: (raiderId, sessionId, noteText, severity) => ipcRenderer.invoke('db:addRaiderNota', raiderId, sessionId, noteText, severity),
     searchPlayers: (query) => ipcRenderer.invoke('db:searchPlayers', query),
     openExternalLink: (url) => ipcRenderer.invoke('open-external-url', url),
+    linkRaiders: (raiderId1, raiderId2) => ipcRenderer.invoke('db:linkRaiders', raiderId1, raiderId2),
 });

@@ -1,0 +1,62 @@
+import React from 'react';
+import ExpedienteHeader from './ExpedienteHeader';
+import HistorialSanciones from './HistorialSanciones';
+import ListaAltersVinculados from './ListaAltersVinculados';
+import HistorialAsistencias from './HistorialAsistencias';
+
+export default function ExpedienteRaider({
+    loadingProfile,
+    profile,
+    selectedRaider,
+    onOpenLinkModal,
+    onOpenNotesModal
+}) {
+    if (loadingProfile) {
+        return (
+            <div className="flex-1 bg-[#1a1b26]/40 p-5 rounded-xl border border-[#414868] h-full flex items-center justify-center text-xs text-[#7aa2f7] animate-pulse">
+                [ ACCEDIENDO A LOS REGISTROS DEL RAIDER... ]
+            </div>
+        );
+    }
+
+    if (!profile || !selectedRaider) {
+        return (
+            <div className="flex-1 bg-[#1a1b26]/40 p-5 rounded-xl border border-[#414868] h-full flex items-center justify-center text-xs text-[#565f89] italic">
+                [ SELECCIONA UN PERSONAJE DE LA IZQUIERDA PARA VER SU EXPEDIENTE ]
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex-1 bg-[#1a1b26]/40 p-5 rounded-xl border border-[#414868] overflow-y-auto h-full mb-0">
+            <div className="space-y-6">
+                
+                {/* Cabecera y Gravedad */}
+                <ExpedienteHeader 
+                    profile={profile} 
+                    selectedRaider={selectedRaider} 
+                />
+
+                {/* Historial de Notas/Sanciones */}
+                <HistorialSanciones 
+                    profile={profile} 
+                    nickname={selectedRaider.nickname} 
+                    onOpenNotesModal={onOpenNotesModal}
+                />
+
+                {/* Gestión de Alters */}
+                <ListaAltersVinculados 
+                    profile={profile} 
+                    onOpenLinkModal={onOpenLinkModal} 
+                />
+
+                {/* Registro de Asistencias a Raids */}
+                <HistorialAsistencias 
+                    profile={profile} 
+                    nickname={selectedRaider.nickname} 
+                />
+
+            </div>
+        </div>
+    );
+}

@@ -57,6 +57,7 @@ app.whenReady().then(() => {
     ipcMain.handle('db:getSessionRaiders', (event, sessionId) => dbmanager.getSessionRaiders(sessionId));
     ipcMain.handle('db:addRaiderNota', (event, raiderId, sessionId, noteText, severity) => dbmanager.addRaiderNota(raiderId, sessionId, noteText, severity));
     ipcMain.handle('db:searchPlayers', (event, query) => dbmanager.searchPlayers(query));
+    ipcMain.handle('db:linkRaiders', (event, raiderId1, raiderId2) => dbmanager.linkRaiders(raiderId1, raiderId2));
 
     // 2. NUEVO: Handler dedicado para abrir URLs en el navegador del sistema operativo
     ipcMain.handle('open-external-url', async (event, url) => {

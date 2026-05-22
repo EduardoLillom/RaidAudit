@@ -174,6 +174,7 @@ function searchPlayers(term) {
             SELECT 
                 COALESCE(p.id, 0) AS id,                  -- ID Maestro (0 si es NULL)
                 r.id AS raider_id,                        -- ID Único del Personaje
+                r.player_id AS player_id,
                 r.name AS nickname,                       -- Nombre del Raider
                 COALESCE(p.nickname, '[ SIN ASIGNAR ]') AS owner_name, -- Dueño de la Cuenta
                 TOTAL(
@@ -198,7 +199,8 @@ function searchPlayers(term) {
     const query = `
         SELECT 
             COALESCE(p.id, 0) AS id,                  
-            r.id AS raider_id,                        
+            r.id AS raider_id,
+            r.player_id AS player_id,                        
             r.name AS nickname,                       
             COALESCE(p.nickname, '[ SIN ASIGNAR ]') AS owner_name,
             TOTAL(
@@ -363,6 +365,64 @@ function getSessionRaiders(sessionId) {
     return db.prepare(query).all(sessionId);
 }
 
+function linkRaiders(raiderIdA, raiderIdB) {
+    const rIdA = Number(raiderIdA);
+    const rIdB = Number(raiderIdB);
+
+    if (rIdA === rIdB) throw new Error("No puedes enlazar un personaje consigo mismo.");
+
+    db.exec('BEGIN TRANSACTION;');
+    try {
+        // 1. Obtener la información actual de ambos raiders
+        const raiderA = db.prepare('SELECT player_id FROM raiders WHERE id = ?').get(rIdA);
+        const raiderB = db.prepare('SELECT player_id FROM raiders WHERE id = ?').get(rIdB);
+
+        if (!raiderA || !raiderB) {
+            throw new Error("Uno o ambos personajes no existen en la base de datos.");
+        }
+
+        let pIdA = raiderA.player_id;
+        let pIdB = raiderB.player_id;
+
+        // CASO 1: Ambos son PUGs (No tienen cuenta maestra creada)
+        if (!pIdA && !pIdB) {
+            // Creamos una cuenta maestra genérica usando el nombre de uno de ellos temporalmente
+            const raiderData = db.prepare('SELECT name FROM raiders WHERE id = ?').get(rIdA);
+            const newPlayer = db.prepare('INSERT INTO players (nickname) VALUES (?)').run(`Cuenta_${raiderData.name}`);
+            const newPlayerId = newPlayer.lastInsertRowid;
+
+            // Asignamos ambos al nuevo ID maestro
+            db.prepare('UPDATE raiders SET player_id = ? WHERE id IN (?, ?)').run(newPlayerId, rIdA, rIdB);
+        }
+        
+        // CASO 2: El Raider A es PUG, pero el Raider B ya tiene una cuenta asignada
+        else if (!pIdA && pIdB) {
+            db.prepare('UPDATE raiders SET player_id = ? WHERE id = ?').run(pIdB, rIdA);
+        }
+
+        // CASO 3: El Raider B es PUG, pero el Raider A ya tiene una cuenta asignada
+        else if (pIdA && !pIdB) {
+            db.prepare('UPDATE raiders SET player_id = ? WHERE id = ?').run(pIdA, rIdB);
+        }
+
+        // CASO 4: Ambos ya tenían cuentas maestras diferentes (FUSIÓN / EVITA BUCLES)
+        else if (pIdA !== pIdB) {
+            // Migramos TODOS los alters que apuntaban a la cuenta B hacia la cuenta A
+            db.prepare('UPDATE raiders SET player_id = ? WHERE player_id = ?').run(pIdA, pIdB);
+
+            // Opcional: Eliminamos la cuenta maestra B que quedó huérfana y vacía
+            db.prepare('DELETE FROM players WHERE id = ?').run(pIdB);
+        }
+
+        db.exec('COMMIT;');
+        return { success: true, message: "Personajes enlazados correctamente." };
+    } catch (error) {
+        db.exec('ROLLBACK;');
+        console.error("Error en la fusión de personajes:", error);
+        throw error;
+    }
+}
+
 const dbmanager = {
     initDatabase,
     getAllGuilds,
@@ -376,7 +436,8 @@ const dbmanager = {
     getActiveSession,
     getSessionRaiders,
     addRaiderNota,
-    searchPlayers
+    searchPlayers,
+    linkRaiders,
 };
 
 export { dbmanager };
