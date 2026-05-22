@@ -47,7 +47,7 @@ app.whenReady().then(() => {
     // IPC Handlers de la Base de Datos
     ipcMain.handle('db:getAllGuilds', () => dbmanager.getAllGuilds());
     ipcMain.handle('db:getGuildHistory', (event, guildId) => dbmanager.getGuildHistory(guildId));
-    ipcMain.handle('db:getPlayerProfile', (event, playerId) => dbmanager.getPlayerProfile(playerId));
+    ipcMain.handle('db:getPlayerProfile', (event, playerId, raiderId) => dbmanager.getPlayerProfile(playerId, raiderId));
     ipcMain.handle('db:getRaiderStatus', (event, name) => dbmanager.getRaiderStatus(name));
     ipcMain.handle('db:insertRaidSession', (event, data) => dbmanager.insertRaidSession(data));
     ipcMain.handle('db:endRaidSession', (event, sessionId, endTime) => dbmanager.endRaidSession(sessionId, endTime));
@@ -56,6 +56,7 @@ app.whenReady().then(() => {
     ipcMain.handle('db:getActiveSession', () => dbmanager.getActiveSession());
     ipcMain.handle('db:getSessionRaiders', (event, sessionId) => dbmanager.getSessionRaiders(sessionId));
     ipcMain.handle('db:addRaiderNota', (event, raiderId, sessionId, noteText, severity) => dbmanager.addRaiderNota(raiderId, sessionId, noteText, severity));
+    ipcMain.handle('db:searchPlayers', (event, query) => dbmanager.searchPlayers(query));
 
     // 2. NUEVO: Handler dedicado para abrir URLs en el navegador del sistema operativo
     ipcMain.handle('open-external-url', async (event, url) => {

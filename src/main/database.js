@@ -95,21 +95,131 @@ function getActiveSession() {
     return db.prepare('SELECT id, instance, notes, guild_id, date, start_time, end_time, status FROM sessions WHERE status = ? ORDER BY date DESC LIMIT 1').get('active');
 }
 
-function getPlayerProfile(playerId) {
-    // CORREGIDO: Adaptado a .prepare()
-    const characters = db.prepare('SELECT id, name, class FROM raiders WHERE player_id = ?').all(playerId);
+function getPlayerProfile(playerId, raiderId) {
+    const pId = Number(playerId);
+    const rId = Number(raiderId);
 
+    if (rId === 0) {
+        return { characters: [], history: [], summary: { lows:0, mediums:0, highs:0, gravity_total:0 }, notes: [], unassigned: true };
+    }
+
+    // 1. NOTAS EXCLUSIVAS de este personaje seleccionado
+    const notes = db.prepare(`
+    SELECT 
+        rn.id AS id, 
+        r.name AS character_name, 
+        COALESCE(s.instance, 'Nota General') AS instance, 
+        rn.note_text AS note_text, 
+        rn.severity AS severity
+    FROM raider_notes rn
+    JOIN raiders r ON rn.raider_id = r.id
+    LEFT JOIN sessions s ON rn.session_id = s.id
+    WHERE rn.raider_id = ?
+    ORDER BY rn.id DESC
+    `).all(rId);
+
+    // 2. SCOREBOARD EXCLUSIVO de este personaje seleccionado
+    const summary = db.prepare(`
+        SELECT 
+            TOTAL(CASE WHEN severity = 'LOW' THEN 1 END) AS lows,
+            TOTAL(CASE WHEN severity = 'MEDIUM' THEN 1 END) AS mediums,
+            TOTAL(CASE WHEN severity = 'HIGH' THEN 1 END) AS highs,
+            TOTAL(
+                CASE 
+                    WHEN severity = 'LOW' THEN 1 
+                    WHEN severity = 'MEDIUM' THEN 3 
+                    WHEN severity = 'HIGH' THEN 5 
+                    ELSE 0 
+                END
+            ) AS gravity_total
+        FROM raider_notes 
+        WHERE raider_id = ?
+    `).get(rId);
+
+    // 3. HISTORIAL DE ASISTENCIA exclusivo de este personaje
     const history = db.prepare(`
-        SELECT r.name AS character_name, s.name AS raid_name, s.instance, s.notes, s.date, g.name AS guild_name 
+        SELECT r.name AS character_name, s.instance AS raid_name, s.notes, s.date, g.name AS guild_name 
         FROM raiders r
         JOIN session_raiders sr ON r.id = sr.raider_id
         JOIN sessions s ON sr.session_id = s.id
         JOIN guilds g ON s.guild_id = g.id
-        WHERE r.player_id = ?
+        WHERE r.id = ?
         ORDER BY s.date DESC
-    `).all(playerId);
+    `).all(rId);
 
-    return { characters, history };
+    // 4. ALTERS VINCULADOS (Si pId > 0, buscamos sus "hermanos", si no, lista vacía)
+    let characters = [];
+    if (pId > 0) {
+        characters = db.prepare(`
+            SELECT id, name, class 
+            FROM raiders 
+            WHERE player_id = ? AND id != ? 
+            ORDER BY name ASC
+        `).all(pId, rId); // Excluimos al personaje actual de la lista de alters para no duplicarlo
+    }
+
+    return { 
+        characters, 
+        history, 
+        summary, 
+        notes, 
+        unassigned: pId === 0 
+    };
+}
+
+function searchPlayers(term) {
+    // CASO A: Si el término de búsqueda viene vacío, cargamos una lista rápida inicial (los últimos 15 creados)
+    if (!term || term.trim() === '') {
+        const defaultQuery = `
+            SELECT 
+                COALESCE(p.id, 0) AS id,                  -- ID Maestro (0 si es NULL)
+                r.id AS raider_id,                        -- ID Único del Personaje
+                r.name AS nickname,                       -- Nombre del Raider
+                COALESCE(p.nickname, '[ SIN ASIGNAR ]') AS owner_name, -- Dueño de la Cuenta
+                TOTAL(
+                    CASE 
+                        WHEN rn.severity = 'LOW' THEN 1
+                        WHEN rn.severity = 'MEDIUM' THEN 3
+                        WHEN rn.severity = 'HIGH' THEN 5
+                        ELSE 0
+                    END
+                ) AS gravity_total
+            FROM raiders r
+            LEFT JOIN players p ON r.player_id = p.id     
+            LEFT JOIN raider_notes rn ON r.id = rn.raider_id
+            GROUP BY r.id
+            ORDER BY r.id DESC 
+            LIMIT 15;
+        `;
+        return db.prepare(defaultQuery).all();
+    }
+
+    // CASO B: Si el usuario escribió un término en la barra, filtramos usando LIKE
+    const query = `
+        SELECT 
+            COALESCE(p.id, 0) AS id,                  
+            r.id AS raider_id,                        
+            r.name AS nickname,                       
+            COALESCE(p.nickname, '[ SIN ASIGNAR ]') AS owner_name,
+            TOTAL(
+                CASE 
+                    WHEN rn.severity = 'LOW' THEN 1
+                    WHEN rn.severity = 'MEDIUM' THEN 3
+                    WHEN rn.severity = 'HIGH' THEN 5
+                    ELSE 0
+                END
+            ) AS gravity_total
+        FROM raiders r
+        LEFT JOIN players p ON r.player_id = p.id     
+        LEFT JOIN raider_notes rn ON r.id = rn.raider_id
+        WHERE r.name LIKE ?
+        GROUP BY r.id
+        ORDER BY r.name ASC
+        LIMIT 15;
+    `;
+
+    // Buscamos cualquier nombre de raider que empiece con el término escrito
+    return db.prepare(query).all(`${term.trim()}%`);
 }
 
 function getRaiderStatus(name) {
@@ -266,6 +376,7 @@ const dbmanager = {
     getActiveSession,
     getSessionRaiders,
     addRaiderNota,
+    searchPlayers
 };
 
 export { dbmanager };

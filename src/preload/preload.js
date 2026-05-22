@@ -4,7 +4,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('apiDB', {
     getAllGuilds: () => ipcRenderer.invoke('db:getAllGuilds'),
     getGuildHistory: (guildId) => ipcRenderer.invoke('db:getGuildHistory', guildId),
-    getPlayerProfile: (playerId) => ipcRenderer.invoke('db:getPlayerProfile', playerId),
+    getPlayerProfile: (playerId, raiderId) => ipcRenderer.invoke('db:getPlayerProfile', playerId, raiderId),
     getRaiderStatus: (name) => ipcRenderer.invoke('db:getRaiderStatus', name),
     insertRaidSession: (data) => ipcRenderer.invoke('db:insertRaidSession', data),
     endRaidSession: (sessionId, endTime) => ipcRenderer.invoke('db:endRaidSession', sessionId, endTime),
@@ -13,5 +13,6 @@ contextBridge.exposeInMainWorld('apiDB', {
     getActiveSession: () => ipcRenderer.invoke('db:getActiveSession'),
     getSessionRaiders: (sessionId) => ipcRenderer.invoke('db:getSessionRaiders', sessionId),
     addRaiderNota: (raiderId, sessionId, noteText, severity) => ipcRenderer.invoke('db:addRaiderNota', raiderId, sessionId, noteText, severity),
+    searchPlayers: (query) => ipcRenderer.invoke('db:searchPlayers', query),
     openExternalLink: (url) => ipcRenderer.invoke('open-external-url', url),
 });
