@@ -9,7 +9,9 @@ export default function ExpedienteRaider({
     profile,
     selectedRaider,
     onOpenLinkModal,
-    onOpenNotesModal
+    onOpenNotesModal,
+    onEditNote,
+    onDeleteNote
 }) {
     if (loadingProfile) {
         return (
@@ -42,6 +44,8 @@ export default function ExpedienteRaider({
                     profile={profile} 
                     nickname={selectedRaider.nickname} 
                     onOpenNotesModal={onOpenNotesModal}
+                    onEditNote={onEditNote}
+                    onDeleteNote={onDeleteNote}
                 />
 
                 {/* Gestión de Alters */}

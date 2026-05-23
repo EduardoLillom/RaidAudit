@@ -141,6 +141,30 @@ export default function JugadoresTab() {
         }
     }
 
+    async function handleEliminarNota(noteId) {
+        if (!confirm("¿Seguro que quieres borrar este registro de sanción?")) return;
+        try {
+            await window.apiDB.deleteNote(Number(noteId));
+            await handleSelectRaider(selectedRaider); // Refresca expediente
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    // ✍️ ACCIÓN: Editar nota inline desde la tarjeta
+    async function handleEditarNotaInline(noteId, newText, newSeverity) {
+        try {
+            // Llama directamente a tu consulta SQL UPDATE
+            await window.apiDB.updateNote(Number(noteId), newText, newSeverity);
+            
+            // Volvemos a pedir el perfil para pintar los cambios frescos
+            await handleSelectRaider(selectedRaider);
+        } catch (error) {
+            console.error("Error al actualizar la nota:", error);
+            alert("No se pudo guardar la modificación.");
+        }
+    }    
+
     async function handleGuardarNota(raiderIdOrName, noteText, severity) {
         const rId = selectedRaider.raider_id || selectedRaider.id || raiderIdOrName;
 
@@ -198,6 +222,8 @@ export default function JugadoresTab() {
                 selectedRaider={selectedRaider}
                 onOpenLinkModal={() => setShowLinkModal(true)}
                 onOpenNotesModal={() => setShowNotesModal(true)}
+                onEditNote={handleEditarNotaInline}
+                onDeleteNote={handleEliminarNota}
             />
 
             {/* MODAL INTERNO FLOTANTE: VINCULAR ALTERS */}
