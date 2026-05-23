@@ -44,12 +44,21 @@ function initDatabase() {
         );
 
         CREATE TABLE IF NOT EXISTS session_raiders (
-            session_id INTEGER,
-            raider_id INTEGER,
+            id INTEGER PRIMARY KEY AUTOINCREMENT, 
+            session_id INTEGER NOT NULL,
+            raider_id INTEGER NOT NULL,
             subgroup INTEGER DEFAULT 1,
-            PRIMARY KEY (session_id, raider_id),
+            status TEXT CHECK(status IN ('ACTIVE', 'REPLACED')) DEFAULT 'ACTIVE',
+            replaced_by_id INTEGER,
+            change_note TEXT DEFAULT NULL,
+            
+            -- ⏱️ CAMPOS DE HORA (Robustez cronológica)
+            joined_time TEXT NOT NULL DEFAULT (time('now')), -- Registra la hora exacta de entrada (ej: "21:30:00")
+            left_time TEXT DEFAULT NULL,                                  -- Registra la hora exacta de salida (ej: "22:45:00")
+            
             FOREIGN KEY (session_id) REFERENCES sessions (id) ON DELETE CASCADE,
-            FOREIGN KEY (raider_id) REFERENCES raiders (id) ON DELETE CASCADE
+            FOREIGN KEY (raider_id) REFERENCES raiders (id) ON DELETE CASCADE,
+            FOREIGN KEY (replaced_by_id) REFERENCES raiders (id) ON DELETE SET NULL
         );
 
         CREATE TABLE IF NOT EXISTS raider_notes (
@@ -167,61 +176,53 @@ function getPlayerProfile(playerId, raiderId) {
     };
 }
 
-function searchPlayers(term) {
-    // CASO A: Si el término de búsqueda viene vacío, cargamos una lista rápida inicial (los últimos 15 creados)
+function searchPlayers(term, sessionId = null) {
+    // CASO A: Si el término viene vacío, cargamos los últimos 15 creados que NO estén en la sesión actual
     if (!term || term.trim() === '') {
         const defaultQuery = `
             SELECT 
-                COALESCE(p.id, 0) AS id,                  -- ID Maestro (0 si es NULL)
-                r.id AS raider_id,                        -- ID Único del Personaje
+                COALESCE(p.id, 0) AS id,                  
+                r.id AS raider_id,                        
                 r.player_id AS player_id,
-                r.name AS nickname,                       -- Nombre del Raider
-                COALESCE(p.nickname, '[ SIN ASIGNAR ]') AS owner_name, -- Dueño de la Cuenta
-                TOTAL(
-                    CASE 
-                        WHEN rn.severity = 'LOW' THEN 1
-                        WHEN rn.severity = 'MEDIUM' THEN 3
-                        WHEN rn.severity = 'HIGH' THEN 5
-                        ELSE 0
-                    END
-                ) AS gravity_total
+                r.name AS nickname,                       
+                COALESCE(p.nickname, '[ SIN ASIGNAR ]') AS owner_name, 
+                TOTAL(CASE WHEN rn.severity = 'LOW' THEN 1 WHEN rn.severity = 'MEDIUM' THEN 3 WHEN rn.severity = 'HIGH' THEN 5 ELSE 0 END) AS gravity_total
             FROM raiders r
             LEFT JOIN players p ON r.player_id = p.id     
             LEFT JOIN raider_notes rn ON r.id = rn.raider_id
+            WHERE r.id NOT IN (
+                SELECT raider_id FROM session_raiders WHERE session_id = ? AND status = 'ACTIVE'
+            )
             GROUP BY r.id
             ORDER BY r.id DESC 
             LIMIT 15;
         `;
-        return db.prepare(defaultQuery).all();
+        return db.prepare(defaultQuery).all(sessionId || 0);
     }
 
-    // CASO B: Si el usuario escribió un término en la barra, filtramos usando LIKE
+    // CASO B: Si el usuario escribe, filtramos por nombre Y excluimos activos de la sesión
     const query = `
         SELECT 
             COALESCE(p.id, 0) AS id,                  
             r.id AS raider_id,
-            r.player_id AS player_id,                        
-            r.name AS nickname,                       
+            r.player_id AS player_id,
+            r.name AS nickname,
+            r.class AS class,
             COALESCE(p.nickname, '[ SIN ASIGNAR ]') AS owner_name,
-            TOTAL(
-                CASE 
-                    WHEN rn.severity = 'LOW' THEN 1
-                    WHEN rn.severity = 'MEDIUM' THEN 3
-                    WHEN rn.severity = 'HIGH' THEN 5
-                    ELSE 0
-                END
-            ) AS gravity_total
+            TOTAL(CASE WHEN rn.severity = 'LOW' THEN 1 WHEN rn.severity = 'MEDIUM' THEN 3 WHEN rn.severity = 'HIGH' THEN 5 ELSE 0 END) AS gravity_total
         FROM raiders r
         LEFT JOIN players p ON r.player_id = p.id     
         LEFT JOIN raider_notes rn ON r.id = rn.raider_id
         WHERE r.name LIKE ?
+          AND r.id NOT IN (
+              SELECT raider_id FROM session_raiders WHERE session_id = ? AND status = 'ACTIVE'
+          )
         GROUP BY r.id
         ORDER BY r.name ASC
         LIMIT 15;
     `;
 
-    // Buscamos cualquier nombre de raider que empiece con el término escrito
-    return db.prepare(query).all(`${term.trim()}%`);
+    return db.prepare(query).all(`${term.trim()}%`, sessionId || 0);
 }
 
 function getRaiderStatus(name) {
@@ -287,14 +288,25 @@ function endRaidSession(sessionId, endTime) {
     return sessionId;
 }
 
+function markRaidSessionIncomplete(sessionId, endTime) {
+    db.prepare('UPDATE sessions SET end_time = ?, status = ? WHERE id = ?').run(endTime, 'incomplete', sessionId);
+    return sessionId;
+}
+
 function addRaiderToSession(sessionId, raiderName, raiderClass, subgroup = 1) {
     db.exec('BEGIN TRANSACTION;');
     try {
-        // CORREGIDO: Preparando declaraciones síncronas
-        db.prepare('INSERT OR IGNORE INTO raiders (name, class) VALUES (?, ?)').run(raiderName, rClass);
-        const dbRaider = db.prepare('SELECT id FROM raiders WHERE name = ?').get(raiderName);
-        db.prepare('INSERT OR IGNORE INTO session_raiders (session_id, raider_id, subgroup) VALUES (?, ?, ?)').run(sessionId, dbRaider.id, subgroup);
-        
+        const safeName = String(raiderName || '').trim();
+        const safeClass = String(raiderClass || 'PALADIN').trim() || 'PALADIN';
+
+        if (!safeName) {
+            throw new Error('El nombre del raider es obligatorio.');
+        }
+
+        db.prepare('INSERT OR IGNORE INTO raiders (name, class) VALUES (?, ?)').run(safeName, safeClass);
+        const dbRaider = db.prepare('SELECT id FROM raiders WHERE name = ?').get(safeName);
+        db.prepare('INSERT OR IGNORE INTO session_raiders (session_id, raider_id, subgroup) VALUES (?, ?, ?)').run(Number(sessionId), dbRaider.id, Number(subgroup) || 1);
+
         db.exec('COMMIT;');
         return dbRaider.id;
     } catch (error) {
@@ -357,7 +369,8 @@ function getSessionRaiders(sessionId) {
         FROM session_raiders sr 
         JOIN raiders r ON sr.raider_id = r.id 
         LEFT JOIN raider_notes rn ON r.id = rn.raider_id
-        WHERE sr.session_id = ? 
+        WHERE sr.session_id = ?
+          AND sr.status = 'ACTIVE'
         GROUP BY r.id
         ORDER BY sr.subgroup ASC, r.name ASC
     `;
@@ -423,6 +436,52 @@ function linkRaiders(raiderIdA, raiderIdB) {
     }
 }
 
+function deleteNote(noteId) {
+    db.prepare('DELETE FROM raider_notes WHERE id = ?').run(noteId);
+}
+
+function updateNote(noteId, newText, newSeverity) {
+    db.prepare('UPDATE raider_notes SET note_text = ?, severity = ? WHERE id = ?').run(newText, newSeverity, noteId);
+}
+
+function reemplazarRaider(sessionId, raiderOutId, raiderInId, noteText, subgroup) {
+    db.exec('BEGIN TRANSACTION;');
+    try {
+        // 1. Cerramos el ciclo del raider que SALE (Usando time('now') para UTC del servidor/app)
+        db.prepare(`
+            UPDATE session_raiders 
+            SET status = 'REPLACED', 
+                replaced_by_id = ?, 
+                change_note = ?,
+                left_time = time('now')
+            WHERE session_id = ? AND raider_id = ? AND status = 'ACTIVE'
+        `).run(
+            Number(raiderInId), 
+            noteText || 'Reemplazado', 
+            Number(sessionId), 
+            Number(raiderOutId)
+        );
+
+        // 2. Abrimos el ciclo del raider que ENTRA (Heredando la misma hora UTC para el registro)
+        db.prepare(`
+            INSERT INTO session_raiders (session_id, raider_id, subgroup, status, change_note, joined_time) 
+            VALUES (?, ?, ?, 'ACTIVE', ?, time('now'))
+        `).run(
+            Number(sessionId), 
+            Number(raiderInId), 
+            Number(subgroup || 1), 
+            `Entra a cubrir a un compañero. Nota: ${noteText || ''}`
+        );
+
+        db.exec('COMMIT;');
+        return true;
+    } catch (error) {
+        db.exec('ROLLBACK;');
+        console.error('Error crítico en el reemplazo UTC:', error);
+        throw error;
+    }
+}
+
 const dbmanager = {
     initDatabase,
     getAllGuilds,
@@ -431,6 +490,7 @@ const dbmanager = {
     getRaiderStatus,
     insertRaidSession,
     endRaidSession,
+    markRaidSessionIncomplete,
     addRaiderToSession,
     removeRaiderFromSession,
     getActiveSession,
@@ -438,6 +498,9 @@ const dbmanager = {
     addRaiderNota,
     searchPlayers,
     linkRaiders,
+    deleteNote,
+    updateNote,
+    reemplazarRaider
 };
 
 export { dbmanager };

@@ -2,18 +2,18 @@
   "name": "raider-view",
   "version": "4.0.0",
   "description": "Azeroth Core Engine - WoW Raid Management Application",
+  "author": "RaiderView Team",
   "main": "src/main/index.js",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && electron-builder",
+    "build": "vite build",
     "preview": "vite preview",
     "electron": "electron .",
     "electron-dev": "concurrently \"pnpm dev\" \"wait-on http://localhost:5173 && electron .\"",
-    "electron-build": "pnpm build && electron-builder"
+    "electron-build": "vite build && electron-builder"
   },
   "dependencies": {
-    "electron-squirrel-startup": "^1.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
@@ -31,8 +31,9 @@
     "appId": "com.azerothcore.raiderview",
     "productName": "RaiderView",
     "files": [
-      "dist",
-      "dist-electron/**/*",
+      "dist/**/*",
+      "src/main/**/*",
+      "src/preload/**/*",
       "node_modules/**/*"
     ],
     "directories": {
@@ -42,7 +43,8 @@
       "target": [
         "nsis",
         "portable"
-      ]
+      ],
+      "sign": false
     }
   }
 }

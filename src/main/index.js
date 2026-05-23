@@ -51,15 +51,17 @@ app.whenReady().then(() => {
     ipcMain.handle('db:getRaiderStatus', (event, name) => dbmanager.getRaiderStatus(name));
     ipcMain.handle('db:insertRaidSession', (event, data) => dbmanager.insertRaidSession(data));
     ipcMain.handle('db:endRaidSession', (event, sessionId, endTime) => dbmanager.endRaidSession(sessionId, endTime));
+    ipcMain.handle('db:markRaidSessionIncomplete', (event, sessionId, endTime) => dbmanager.markRaidSessionIncomplete(sessionId, endTime));
     ipcMain.handle('db:addRaiderToSession', (event, sessionId, name, cls, subgroup) => dbmanager.addRaiderToSession(sessionId, name, cls, subgroup));
     ipcMain.handle('db:removeRaiderFromSession', (event, sessionId, raiderId) => dbmanager.removeRaiderFromSession(sessionId, raiderId));
     ipcMain.handle('db:getActiveSession', () => dbmanager.getActiveSession());
     ipcMain.handle('db:getSessionRaiders', (event, sessionId) => dbmanager.getSessionRaiders(sessionId));
     ipcMain.handle('db:addRaiderNota', (event, raiderId, sessionId, noteText, severity) => dbmanager.addRaiderNota(raiderId, sessionId, noteText, severity));
-    ipcMain.handle('db:searchPlayers', (event, query) => dbmanager.searchPlayers(query));
+    ipcMain.handle('db:searchPlayers', (event, query, sessionId) => dbmanager.searchPlayers(query, sessionId));
     ipcMain.handle('db:linkRaiders', (event, raiderId1, raiderId2) => dbmanager.linkRaiders(raiderId1, raiderId2));
     ipcMain.handle('db:deleteNote', (event, noteId) => dbmanager.deleteNote(noteId));
     ipcMain.handle('db:updateNote', (event, noteId, newText, newSeverity) => dbmanager.updateNote(noteId, newText, newSeverity));
+    ipcMain.handle('db:reemplazarRaider', (event, sessionId, raiderOutId, raiderInId, noteText, subgroup) => dbmanager.reemplazarRaider(sessionId, raiderOutId, raiderInId, noteText, subgroup));
 
     // 2. NUEVO: Handler dedicado para abrir URLs en el navegador del sistema operativo
     ipcMain.handle('open-external-url', async (event, url) => {

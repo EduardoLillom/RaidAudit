@@ -8,14 +8,16 @@ contextBridge.exposeInMainWorld('apiDB', {
     getRaiderStatus: (name) => ipcRenderer.invoke('db:getRaiderStatus', name),
     insertRaidSession: (data) => ipcRenderer.invoke('db:insertRaidSession', data),
     endRaidSession: (sessionId, endTime) => ipcRenderer.invoke('db:endRaidSession', sessionId, endTime),
+    markRaidSessionIncomplete: (sessionId, endTime) => ipcRenderer.invoke('db:markRaidSessionIncomplete', sessionId, endTime),
     addRaiderToSession: (sessionId, name, cls, subgroup) => ipcRenderer.invoke('db:addRaiderToSession', sessionId, name, cls, subgroup),
     removeRaiderFromSession: (sessionId, raiderId) => ipcRenderer.invoke('db:removeRaiderFromSession', sessionId, raiderId),
     getActiveSession: () => ipcRenderer.invoke('db:getActiveSession'),
     getSessionRaiders: (sessionId) => ipcRenderer.invoke('db:getSessionRaiders', sessionId),
     addRaiderNota: (raiderId, sessionId, noteText, severity) => ipcRenderer.invoke('db:addRaiderNota', raiderId, sessionId, noteText, severity),
-    searchPlayers: (query) => ipcRenderer.invoke('db:searchPlayers', query),
+    searchPlayers: (query, sessionId) => ipcRenderer.invoke('db:searchPlayers', query, sessionId),
     openExternalLink: (url) => ipcRenderer.invoke('open-external-url', url),
     linkRaiders: (raiderId1, raiderId2) => ipcRenderer.invoke('db:linkRaiders', raiderId1, raiderId2),
     deleteNote: (noteId) => ipcRenderer.invoke('db:deleteNote', noteId),
-    updateNote: (noteId, newText, newSeverity) => ipcRenderer.invoke('db:updateNote', noteId, newText, newSeverity)
+    updateNote: (noteId, newText, newSeverity) => ipcRenderer.invoke('db:updateNote', noteId, newText, newSeverity),
+    reemplazarRaider: (sessionId, raiderOutId, raiderInId, noteText, subgroup) => ipcRenderer.invoke('db:reemplazarRaider', sessionId, raiderOutId, raiderInId, noteText, subgroup)
 });
