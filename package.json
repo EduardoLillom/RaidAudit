@@ -28,23 +28,24 @@
     "wait-on": "^7.2.0"
   },
   "build": {
-    "appId": "com.azerothcore.raiderview",
-    "productName": "RaiderView",
-    "files": [
-      "dist/**/*",
-      "src/main/**/*",
-      "src/preload/**/*",
-      "node_modules/**/*"
-    ],
-    "directories": {
-      "buildResources": "public"
-    },
-    "win": {
-      "target": [
-        "nsis",
-        "portable"
+      "appId": "com.azerothcore.raiderview",
+      "productName": "RaiderView",
+      "files": [
+        "dist/**/*",
+        "src/main/**/*",
+        "src/preload/**/*",
+        "node_modules/**/*"
       ],
-      "sign": false
+      "directories": {
+        "buildResources": "public"
+      },
+      "win": {
+        "target": [
+          "nsis",
+          "portable"
+        ],
+        "cscLink": null,
+        "cscKeyPassword": null
+      }
     }
-  }
 }
