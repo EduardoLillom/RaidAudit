@@ -15,7 +15,9 @@ export default function SessionConfigForm({
     handleStartSession,
     loading
 }) {
+    // Validaciones de estado para los botones
     const canStart = Boolean(datosRaidTemporal) && Boolean(selectedGuild);
+    const canAnalyze = Boolean(jsonText && jsonText.trim());
 
     return (
         <div className="flex-1 flex flex-col gap-3 overflow-hidden">
@@ -76,9 +78,10 @@ export default function SessionConfigForm({
             <div className="flex flex-col gap-2 mt-1">
                 <button
                     onClick={handleProcesar}
-                    className="w-full bg-[#bb9af7] text-[#1a1b26] font-extrabold py-2 rounded-lg text-xs hover:bg-[#c0caf5] transition-all shadow-md cursor-pointer"
+                    disabled={loading || !canAnalyze}
+                    className="w-full bg-[#bb9af7] text-[#1a1b26] font-extrabold py-2 rounded-lg text-xs hover:bg-[#c0caf5] transition-all shadow-md cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                 >
-                    ANALIZAR ROSTER
+                    {loading ? 'ANALIZANDO...' : 'ANALIZAR ROSTER'}
                 </button>
 
                 <button

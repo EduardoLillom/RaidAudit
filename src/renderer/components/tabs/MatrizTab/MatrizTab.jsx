@@ -102,13 +102,13 @@ export default function MatrizTab({ onSelectRaider }) {
     }
 
     async function handleProcesar() {
-        setLoading(true);
-
-        if (!selectedGuild || selectedGuild === '' || !jsonText.trim()) {
-            alert('Asigna una Guild y rellena el log JSON antes de analizar.');
-            setLoading(false);
+        // 1. Ahora SOLO exigimos que el texto del JSON no esté vacío
+        if (!jsonText.trim()) {
+            alert('Por favor, rellena el log JSON antes de analizar.');
             return;
         }
+
+        setLoading(true);
 
         try {
             let raidersData = JSON.parse(jsonText);
@@ -139,8 +139,12 @@ export default function MatrizTab({ onSelectRaider }) {
             }
 
             setRaiders(processedRaiders);
+            
+            // Guardamos los datos temporales. 
+            // Si 'selectedGuild' está vacío, se guardará como 0 o NaN temporalmente, 
+            // pero no importa porque se actualizará al darle a Confirmar Sesión.
             setDatosRaidTemporal({
-                guildId: Number(selectedGuild),
+                guildId: Number(selectedGuild) || null, 
                 instance: raidType,
                 notes: raidNotes,
                 currentTime: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
