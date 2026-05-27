@@ -23,10 +23,13 @@ function createWindow() {
         }
     });
 
+    
+    mainWindow.setMenu(null);
     if (isDev) {
         mainWindow.loadURL(devServerURL);
         mainWindow.webContents.openDevTools();
     } else {
+        // Carga el archivo index.html
         mainWindow.loadFile(path.join(__dirname, '../../dist/index.html'));
     }
 
@@ -46,6 +49,8 @@ app.whenReady().then(() => {
     
     // IPC Handlers de la Base de Datos
     ipcMain.handle('db:getAllGuilds', () => dbmanager.getAllGuilds());
+    ipcMain.handle('db:createGuild', (event, name) => dbmanager.createGuild(name));
+    ipcMain.handle('db:getAllSessionsHistory', () => dbmanager.getAllSessionsHistory());
     ipcMain.handle('db:getGuildHistory', (event, guildId) => dbmanager.getGuildHistory(guildId));
     ipcMain.handle('db:getPlayerProfile', (event, playerId, raiderId) => dbmanager.getPlayerProfile(playerId, raiderId));
     ipcMain.handle('db:getRaiderStatus', (event, name) => dbmanager.getRaiderStatus(name));
@@ -62,6 +67,7 @@ app.whenReady().then(() => {
     ipcMain.handle('db:deleteNote', (event, noteId) => dbmanager.deleteNote(noteId));
     ipcMain.handle('db:updateNote', (event, noteId, newText, newSeverity) => dbmanager.updateNote(noteId, newText, newSeverity));
     ipcMain.handle('db:reemplazarRaider', (event, sessionId, raiderOutId, raiderInId, noteText, subgroup) => dbmanager.reemplazarRaider(sessionId, raiderOutId, raiderInId, noteText, subgroup));
+    ipcMain.handle('db:bulkImportPlayers', (event, playersList) => dbmanager.bulkImportPlayers(playersList));
 
     // 2. NUEVO: Handler dedicado para abrir URLs en el navegador del sistema operativo
     ipcMain.handle('open-external-url', async (event, url) => {

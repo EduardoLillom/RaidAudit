@@ -3,6 +3,8 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('apiDB', {
     getAllGuilds: () => ipcRenderer.invoke('db:getAllGuilds'),
+    createGuild: (name) => ipcRenderer.invoke('db:createGuild', name),
+    getAllSessionsHistory: () => ipcRenderer.invoke('db:getAllSessionsHistory'),
     getGuildHistory: (guildId) => ipcRenderer.invoke('db:getGuildHistory', guildId),
     getPlayerProfile: (playerId, raiderId) => ipcRenderer.invoke('db:getPlayerProfile', playerId, raiderId),
     getRaiderStatus: (name) => ipcRenderer.invoke('db:getRaiderStatus', name),
@@ -19,5 +21,6 @@ contextBridge.exposeInMainWorld('apiDB', {
     linkRaiders: (raiderId1, raiderId2) => ipcRenderer.invoke('db:linkRaiders', raiderId1, raiderId2),
     deleteNote: (noteId) => ipcRenderer.invoke('db:deleteNote', noteId),
     updateNote: (noteId, newText, newSeverity) => ipcRenderer.invoke('db:updateNote', noteId, newText, newSeverity),
-    reemplazarRaider: (sessionId, raiderOutId, raiderInId, noteText, subgroup) => ipcRenderer.invoke('db:reemplazarRaider', sessionId, raiderOutId, raiderInId, noteText, subgroup)
+    reemplazarRaider: (sessionId, raiderOutId, raiderInId, noteText, subgroup) => ipcRenderer.invoke('db:reemplazarRaider', sessionId, raiderOutId, raiderInId, noteText, subgroup),
+    bulkImportPlayers: (playersList) => ipcRenderer.invoke('db:bulkImportPlayers', playersList)
 });
