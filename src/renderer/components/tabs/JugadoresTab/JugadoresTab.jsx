@@ -3,8 +3,9 @@ import SidebarPlayers from './SidebarPlayers';
 import ExpedienteRaider from './ExpedienteRaider';
 import VincularAlterModal from './VincularAlterModal';
 import RaiderNotesModal from '../../shared/RaiderNotesModal';
+import ImportarJugadoresModal from './ImportarJugadoresModal';
 
-export default function JugadoresTab() {
+export default function JugadoresTab({ targetRaider, onTargetHandled }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [raiders, setRaiders] = useState([]); 
     const [selectedRaider, setSelectedRaider] = useState(null); 
@@ -20,6 +21,9 @@ export default function JugadoresTab() {
 
     // 🔗 ESTADOS: Gestoón de Notas
     const [showNotesModal, setShowNotesModal] = useState(false);
+
+    // 📥 ESTADOS: Importación Masiva
+    const [showImportModal, setShowImportModal] = useState(false);
 
 
     // 🔍 ACCIÓN: Consulta de búsqueda principal
@@ -52,6 +56,51 @@ export default function JugadoresTab() {
 
         return () => clearTimeout(delayDebounceFn);
     }, [searchTerm]);
+
+    useEffect(() => {
+        if (!targetRaider) return;
+
+        let isMounted = true;
+
+        const syncTargetRaider = async () => {
+            const targetName = targetRaider.nickname || targetRaider.name || '';
+            if (!targetName) {
+                onTargetHandled?.();
+                return;
+            }
+
+            try {
+                setSearchTerm(targetName);
+                const results = await window.apiDB.searchPlayers(targetName);
+                const matched = (results || []).find(r => (r.raider_id || r.id) === (targetRaider.raider_id || targetRaider.id));
+                const fallbackTarget = {
+                    ...targetRaider,
+                    nickname: targetName,
+                    name: targetName,
+                    raider_id: targetRaider.raider_id || targetRaider.id || 0,
+                    player_id: targetRaider.player_id || targetRaider.owner_id || 0,
+                    owner_name: targetRaider.owner_name || '[ SIN ASIGNAR ]'
+                };
+
+                if (!isMounted) return;
+
+                setRaiders(results || []);
+                await handleSelectRaider(matched || fallbackTarget);
+                onTargetHandled?.();
+            } catch (error) {
+                console.error('Error al enfocar el raider seleccionado:', error);
+                if (isMounted) {
+                    onTargetHandled?.();
+                }
+            }
+        };
+
+        syncTargetRaider();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [targetRaider, onTargetHandled]);
 
     // ⚡ CONTROLADOR: Debounce reactivo dentro del modal de Alters
     useEffect(() => {
@@ -213,6 +262,7 @@ export default function JugadoresTab() {
                 loadingList={loadingList}
                 onSearch={ejecutarBusqueda}
                 onSelectRaider={handleSelectRaider}
+                onOpenImportModal={() => setShowImportModal(true)}
             />
 
             {/* PANEL DERECHO: EXPEDIENTE INDIVIDUAL */}
@@ -250,6 +300,12 @@ export default function JugadoresTab() {
                     onSave={handleGuardarNota}
                 />
             )}
+
+            <ImportarJugadoresModal 
+                isOpen={showImportModal}
+                onClose={() => setShowImportModal(false)}
+                onImportSuccess={() => ejecutarBusqueda(searchTerm)}
+            />
 
         </div>
     );
