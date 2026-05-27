@@ -7,7 +7,9 @@ let dbPath;
 
 function initDatabase() {
     if (!db) {
-        dbPath = path.join(app.getPath('userData'), 'azeroth_data_local.db');
+        dbPath = app.isPackaged 
+            ? path.join(process.env.PORTABLE_EXECUTABLE_DIR || path.dirname(app.getPath('exe')), 'azeroth_data_local.db')
+            : path.join(app.getPath('userData'), 'azeroth_data_local.db');
         db = new DatabaseSync(dbPath);
         db.exec('PRAGMA foreign_keys = ON;');
     }
@@ -94,9 +96,100 @@ function getAllGuilds() {
     return db.prepare('SELECT * FROM guilds ORDER BY name ASC').all();
 }
 
-function getGuildHistory(guildId) {
-    // CORREGIDO: .prepare().all()
-    return db.prepare('SELECT id, name, instance, notes, date, start_time, end_time, status FROM sessions WHERE guild_id = ? ORDER BY date DESC').all(guildId);
+function createGuild(name) {
+    const normalizedName = String(name || '').trim();
+
+    if (!normalizedName) {
+        throw new Error('El nombre de la guild es obligatorio.');
+    }
+
+    const existingGuild = db.prepare('SELECT id, name FROM guilds WHERE LOWER(name) = LOWER(?)').get(normalizedName);
+
+    if (existingGuild) {
+        return existingGuild;
+    }
+
+    const result = db.prepare('INSERT INTO guilds (name) VALUES (?)').run(normalizedName);
+
+    return {
+        id: Number(result.lastInsertRowid),
+        name: normalizedName,
+    };
+}
+
+function getAllSessionsHistory() {
+    return db.prepare(`
+        SELECT
+            s.id,
+            s.instance,
+            s.notes,
+            s.date,
+            s.start_time,
+            s.end_time,
+            s.status,
+            s.guild_id,
+            g.name AS guild_name
+        FROM sessions s
+        JOIN guilds g ON g.id = s.guild_id
+        ORDER BY s.date DESC, s.id DESC
+    `).all();
+}
+
+function getGuildHistory(guildId, filters = {}) {
+    const normalizedFilters = filters || {};
+    const whereClauses = ['guild_id = ?'];
+    const params = [guildId];
+
+    if (normalizedFilters.dateFrom) {
+        whereClauses.push('date >= ?');
+        params.push(String(normalizedFilters.dateFrom));
+    }
+
+    if (normalizedFilters.dateTo) {
+        whereClauses.push('date <= ?');
+        params.push(String(normalizedFilters.dateTo));
+    }
+
+    if (normalizedFilters.minDuration !== undefined && normalizedFilters.minDuration !== '' && normalizedFilters.minDuration !== null) {
+        whereClauses.push(`
+            CASE
+                WHEN start_time IS NULL OR end_time IS NULL THEN NULL
+                ELSE ((CAST(substr(end_time, 1, 2) AS INTEGER) * 60 + CAST(substr(end_time, 4, 2) AS INTEGER))
+                    - (CAST(substr(start_time, 1, 2) AS INTEGER) * 60 + CAST(substr(start_time, 4, 2) AS INTEGER)))
+                    + CASE
+                        WHEN (CAST(substr(end_time, 1, 2) AS INTEGER) * 60 + CAST(substr(end_time, 4, 2) AS INTEGER)) < (CAST(substr(start_time, 1, 2) AS INTEGER) * 60 + CAST(substr(start_time, 4, 2) AS INTEGER))
+                        THEN 1440
+                        ELSE 0
+                    END
+            END >= ?
+        `);
+        params.push(Number(normalizedFilters.minDuration));
+    }
+
+    if (normalizedFilters.maxDuration !== undefined && normalizedFilters.maxDuration !== '' && normalizedFilters.maxDuration !== null) {
+        whereClauses.push(`
+            CASE
+                WHEN start_time IS NULL OR end_time IS NULL THEN NULL
+                ELSE ((CAST(substr(end_time, 1, 2) AS INTEGER) * 60 + CAST(substr(end_time, 4, 2) AS INTEGER))
+                    - (CAST(substr(start_time, 1, 2) AS INTEGER) * 60 + CAST(substr(start_time, 4, 2) AS INTEGER)))
+                    + CASE
+                        WHEN (CAST(substr(end_time, 1, 2) AS INTEGER) * 60 + CAST(substr(end_time, 4, 2) AS INTEGER)) < (CAST(substr(start_time, 1, 2) AS INTEGER) * 60 + CAST(substr(start_time, 4, 2) AS INTEGER))
+                        THEN 1440
+                        ELSE 0
+                    END
+            END <= ?
+        `);
+        params.push(Number(normalizedFilters.maxDuration));
+    }
+
+    const whereSql = whereClauses.join(' AND ');
+
+    return db.prepare(`
+        SELECT id, name, instance, notes, date, start_time, end_time, status
+        FROM sessions
+        WHERE ${whereSql}
+        ORDER BY date DESC
+    `).all(...params);
 }
 
 function getActiveSession() {
@@ -482,9 +575,89 @@ function reemplazarRaider(sessionId, raiderOutId, raiderInId, noteText, subgroup
     }
 }
 
+function bulkImportPlayers(playersList) {
+    if (!Array.isArray(playersList)) {
+        throw new Error('Los datos proporcionados deben ser una lista (array) de jugadores.');
+    }
+
+    db.exec('BEGIN TRANSACTION;');
+    try {
+        const getPlayerStmt = db.prepare('SELECT id FROM players WHERE LOWER(nickname) = LOWER(?)');
+        const insertPlayerStmt = db.prepare('INSERT INTO players (nickname) VALUES (?)');
+        const getRaiderStmt = db.prepare('SELECT id, player_id, class FROM raiders WHERE LOWER(name) = LOWER(?)');
+        const insertRaiderStmt = db.prepare('INSERT INTO raiders (name, class, player_id) VALUES (?, ?, ?)');
+        const updateRaiderStmt = db.prepare('UPDATE raiders SET class = ?, player_id = ? WHERE id = ?');
+
+        let createdRaiders = 0;
+        let updatedRaiders = 0;
+        let createdPlayers = 0;
+
+        for (const item of playersList) {
+            const charName = String(item.name || item.nickname || item.character || item.character_name || '').trim();
+            const charClass = String(item.class || item.character_class || item.spec || 'PALADIN').toUpperCase().trim();
+
+            if (!charName) continue;
+
+            const ownerNameInput = item.player || item.owner || item.player_name || item.owner_name || item.nickname_player || item.cuenta || '';
+            const ownerName = String(ownerNameInput).trim();
+
+            let playerId = null;
+            if (ownerName && ownerName.toLowerCase() !== '[ sin asignar ]') {
+                const dbPlayer = getPlayerStmt.get(ownerName);
+                if (!dbPlayer) {
+                    const insertPlayerRes = insertPlayerStmt.run(ownerName);
+                    playerId = Number(insertPlayerRes.lastInsertRowid);
+                    createdPlayers++;
+                } else {
+                    playerId = Number(dbPlayer.id);
+                }
+            }
+
+            const dbRaider = getRaiderStmt.get(charName);
+            if (!dbRaider) {
+                insertRaiderStmt.run(charName, charClass, playerId);
+                createdRaiders++;
+            } else {
+                let shouldUpdate = false;
+                let finalPlayerId = dbRaider.player_id;
+                let finalClass = dbRaider.class;
+
+                if (dbRaider.class !== charClass) {
+                    finalClass = charClass;
+                    shouldUpdate = true;
+                }
+                if (playerId !== null && dbRaider.player_id !== playerId) {
+                    finalPlayerId = playerId;
+                    shouldUpdate = true;
+                }
+
+                if (shouldUpdate) {
+                    updateRaiderStmt.run(finalClass, finalPlayerId, dbRaider.id);
+                    updatedRaiders++;
+                }
+            }
+        }
+
+        db.exec('COMMIT;');
+        return {
+            success: true,
+            createdRaiders,
+            updatedRaiders,
+            createdPlayers,
+            message: `Importación completada: ${createdRaiders} personajes creados, ${updatedRaiders} actualizados, ${createdPlayers} cuentas creadas.`
+        };
+    } catch (error) {
+        db.exec('ROLLBACK;');
+        console.error('Error durante la importación masiva:', error);
+        throw error;
+    }
+}
+
 const dbmanager = {
     initDatabase,
     getAllGuilds,
+    createGuild,
+    getAllSessionsHistory,
     getGuildHistory,
     getPlayerProfile,
     getRaiderStatus,
@@ -500,7 +673,8 @@ const dbmanager = {
     linkRaiders,
     deleteNote,
     updateNote,
-    reemplazarRaider
+    reemplazarRaider,
+    bulkImportPlayers
 };
 
 export { dbmanager };
