@@ -13,7 +13,7 @@ const classColors = {
     DEATHKNIGHT: { text: 'text-[#c41f3b]', bg: 'from-[#c41f3b]/10 to-[#c41f3b]/5' }
 };
 
-export default function RaiderCard({ raider, onOpenNotes, activeSession, onReplaceTrigger }) {
+export default function RaiderCard({ raider, onOpenNotes, activeSession, onReplaceTrigger, onSelectRaider }) {
     const classKey = raider.class ? raider.class.toUpperCase().replace(/\s+/g, '') : '';
     const classStyle = classColors[classKey] || {
         text: 'text-gray-200',
@@ -34,6 +34,13 @@ export default function RaiderCard({ raider, onOpenNotes, activeSession, onRepla
             window.apiDB.openExternalLink(armoryUrl);
         } else {
             window.open(armoryUrl, '_blank');
+        }
+    };
+
+    const handleSelectRaiderClick = (e) => {
+        e.preventDefault();
+        if (onSelectRaider) {
+            onSelectRaider(raider);
         }
     };
 
@@ -94,7 +101,11 @@ export default function RaiderCard({ raider, onOpenNotes, activeSession, onRepla
                 </div>
             </div>
 
-            <div className="flex justify-between items-center mt-1.5 pt-1 border-t border-[#24283b]/40 text-[10px] font-mono text-[#565f89]">
+            <button
+                type="button"
+                onClick={handleSelectRaiderClick}
+                className="flex justify-between items-center mt-1.5 pt-1 border-t border-[#24283b]/40 text-[10px] font-mono text-[#565f89] w-full text-left hover:text-[#a9b1d6] transition-colors cursor-pointer"
+            >
                 <div className="flex gap-1.5">
                     <span>L:<span className={lows > 0 ? 'text-[#7dcfff] font-bold' : ''}>{lows}</span></span>
                     <span>M:<span className={mediums > 0 ? 'text-[#e0af68] font-bold' : ''}>{mediums}</span></span>
@@ -105,7 +116,7 @@ export default function RaiderCard({ raider, onOpenNotes, activeSession, onRepla
                         {gravityTotal} pts
                     </span>
                 )}
-            </div>
+            </button>
         </div>
     );
 }

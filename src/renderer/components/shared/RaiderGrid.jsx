@@ -3,7 +3,7 @@ import RaiderCard from './RaiderCard';
 import RaiderNotesModal from './RaiderNotesModal';
 import QuickReplaceModal from './QuickReplaceModal';
 
-export default function RaiderGrid({ raiders, activeSession, onReorderRaiders, onLiveReplacement }) {
+export default function RaiderGrid({ raiders, activeSession, onReorderRaiders, onLiveReplacement, onSelectRaider }) {
     const slots = Array.from({ length: 25 }, (_, i) => {
         if (activeSession) {
             return raiders[i] || null;
@@ -65,6 +65,7 @@ export default function RaiderGrid({ raiders, activeSession, onReorderRaiders, o
                                         raiderOutId: raider.id || raider.raider_id,
                                         nameOut: raider.name
                                     })}
+                                    onSelectRaider={onSelectRaider}
                                 />
                             </div>
                         ) : (

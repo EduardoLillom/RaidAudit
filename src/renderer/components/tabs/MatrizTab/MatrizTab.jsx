@@ -4,7 +4,7 @@ import SessionConfigForm from './SessionConfigForm';
 import ActiveManagementPanel from './ActiveManagementPanel';
 import RaiderCard from '../../shared/RaiderCard';
 
-export default function MatrizTab() {
+export default function MatrizTab({ onSelectRaider }) {
     const [guilds, setGuilds] = useState([]);
     const [selectedGuild, setSelectedGuild] = useState('');
     const [raidType, setRaidType] = useState('ICC');
@@ -302,6 +302,7 @@ export default function MatrizTab() {
                         activeSession={activeSession}
                         onReorderRaiders={handleReorderRaiders}
                         onLiveReplacement={handleLiveReplacement}
+                        onSelectRaider={onSelectRaider}
                     />
                 </div>
 
@@ -327,7 +328,11 @@ export default function MatrizTab() {
                                     onDragStart={(e) => e.dataTransfer.setData('text/plain', raider.name)}
                                     className="cursor-grab active:cursor-grabbing transition-transform duration-150 hover:scale-[1.02]"
                                 >
-                                    <RaiderCard raider={raider} onOpenNotes={setModalRaiderBanca} />
+                                    <RaiderCard
+                                        raider={raider}
+                                        onOpenNotes={setModalRaiderBanca}
+                                        onSelectRaider={onSelectRaider}
+                                    />
                                 </div>
                             ))}
                         </div>

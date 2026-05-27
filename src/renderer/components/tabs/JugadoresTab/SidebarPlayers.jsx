@@ -7,7 +7,8 @@ export default function SidebarPlayers({
     selectedRaider,
     loadingList,
     onSearch,
-    onSelectRaider
+    onSelectRaider,
+    onOpenImportModal
 }) {
     function handleKeyDown(e) {
         if (e.key === 'Enter') {
@@ -43,8 +44,15 @@ export default function SidebarPlayers({
                         {loadingList ? '...' : 'Buscar'}
                     </button>
                 </div>
-                <div className="mt-2 text-[10px] text-[#565f89]">
-                    {loadingList ? 'Buscando registros...' : `${raiders.length} resultados visibles`}
+                <div className="mt-2 text-[10px] text-[#565f89] flex justify-between items-center h-5">
+                    <span>{loadingList ? 'Buscando registros...' : `${raiders.length} resultados visibles`}</span>
+                    <button
+                        type="button"
+                        onClick={onOpenImportModal}
+                        className="text-[9px] text-[#bb9af7] hover:text-[#c0caf5] border border-[#bb9af7]/30 hover:border-[#bb9af7] bg-[#bb9af7]/5 hover:bg-[#bb9af7]/10 px-2 py-0.5 rounded transition-all font-bold uppercase tracking-wider cursor-pointer"
+                    >
+                        📂 Importar JSON
+                    </button>
                 </div>
             </div>
 
