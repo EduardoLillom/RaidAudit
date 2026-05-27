@@ -16,7 +16,7 @@ export default function SessionConfigForm({
     loading
 }) {
     // Validaciones de estado para los botones
-    const canStart = Boolean(datosRaidTemporal) && Boolean(selectedGuild);
+    const canStart = Boolean(datosRaidTemporal) && selectedGuild !== "";
     const canAnalyze = Boolean(jsonText && jsonText.trim());
 
     return (
