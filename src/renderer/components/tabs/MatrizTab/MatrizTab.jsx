@@ -307,6 +307,22 @@ export default function MatrizTab({ onSelectRaider }) {
                         onReorderRaiders={handleReorderRaiders}
                         onLiveReplacement={handleLiveReplacement}
                         onSelectRaider={onSelectRaider}
+                        onNoteSaved={async (raider) => {
+                            if (activeSession) {
+                                const updatedRaiders = await window.apiDB.getSessionRaiders(activeSession.id);
+                                setSessionRaiders(updatedRaiders);
+                            } else if (raider?.name) {
+                                const status = await window.apiDB.getRaiderStatus(raider.name);
+                                setRaiders(prevRaiders => prevRaiders.map(r => r.name === raider.name ? {
+                                    ...r,
+                                    lows: status.lows,
+                                    mediums: status.mediums,
+                                    highs: status.highs,
+                                    gravedad_total: status.gravity_total,
+                                    id: status.id || r.id
+                                } : r));
+                            }
+                        }}
                     />
                 </div>
 
