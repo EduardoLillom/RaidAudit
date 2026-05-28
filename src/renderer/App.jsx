@@ -3,6 +3,8 @@ import Header from './components/layout/Header';
 import MatrizTab from './components/tabs/MatrizTab/MatrizTab';
 import JugadoresTab from './components/tabs/JugadoresTab/JugadoresTab';
 import GuildsTab from './components/tabs/GuildTab/GuildTab';
+import GestionTab from './components/tabs/GestionTab/GestionTab';
+import MoreOptionsTab from './components/tabs/MoreOptionsTab/MoreOptionsTab';
 
 export default function App() {
     const [activeTab, setActiveTab] = useState('matriz');
@@ -11,7 +13,9 @@ export default function App() {
     const tabs = [
         { id: 'matriz', label: '[01] Analizador Raid', color: 'bg-[#41a6b5]' },
         { id: 'jugadores', label: '[02] Expedientes', color: 'bg-[#bb9af7]' },
-        { id: 'guilds', label: '[03] Archivo Guilds', color: 'bg-[#9ece6a]' }
+        { id: 'guilds', label: '[03] Archivo Guilds', color: 'bg-[#41a6b5]' },
+        { id: 'gestion', label: '[04] Importación & Gestión', color: 'bg-[#9ece6a]' },
+        { id: 'more options', label: '[05] Más opciones', color: 'bg-[#f7768e]' }
     ];
 
     const handleSelectRaider = (raider) => {
@@ -34,6 +38,8 @@ export default function App() {
                         />
                     )}
                     {activeTab === 'guilds' && <GuildsTab />}
+                    {activeTab === 'gestion' && <GestionTab />}
+                    {activeTab === 'more options' && <MoreOptionsTab />} 
                 </div>
             </div>
         </div>

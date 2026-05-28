@@ -49,7 +49,9 @@ app.whenReady().then(() => {
     
     // IPC Handlers de la Base de Datos
     ipcMain.handle('db:getAllGuilds', () => dbmanager.getAllGuilds());
+    ipcMain.handle('db:getAllGuildsWithStatus', () => dbmanager.getAllGuildsWithStatus());
     ipcMain.handle('db:createGuild', (event, name) => dbmanager.createGuild(name));
+    ipcMain.handle('db:updateGuildStatus', (event, guildId, isActive) => dbmanager.updateGuildStatus(guildId, isActive));
     ipcMain.handle('db:getAllSessionsHistory', () => dbmanager.getAllSessionsHistory());
     ipcMain.handle('db:getGuildHistory', (event, guildId) => dbmanager.getGuildHistory(guildId));
     ipcMain.handle('db:getPlayerProfile', (event, playerId, raiderId) => dbmanager.getPlayerProfile(playerId, raiderId));

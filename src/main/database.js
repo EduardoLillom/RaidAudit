@@ -17,7 +17,8 @@ function initDatabase() {
     db.exec(`
         CREATE TABLE IF NOT EXISTS guilds (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT UNIQUE NOT NULL
+            name TEXT UNIQUE NOT NULL,
+            is_active INTEGER DEFAULT 1
         );
 
         CREATE TABLE IF NOT EXISTS players (
@@ -93,7 +94,7 @@ function initDatabase() {
 
 function getAllGuilds() {
     // CORREGIDO: .prepare().all()
-    return db.prepare('SELECT * FROM guilds ORDER BY name ASC').all();
+    return db.prepare('SELECT * FROM guilds WHERE is_active = 1 ORDER BY name ASC').all();
 }
 
 function createGuild(name) {
@@ -582,24 +583,36 @@ function bulkImportPlayers(playersList) {
 
     db.exec('BEGIN TRANSACTION;');
     try {
+        // Preparar sentencias SQL necesarias
         const getPlayerStmt = db.prepare('SELECT id FROM players WHERE LOWER(nickname) = LOWER(?)');
         const insertPlayerStmt = db.prepare('INSERT INTO players (nickname) VALUES (?)');
+        
         const getRaiderStmt = db.prepare('SELECT id, player_id, class FROM raiders WHERE LOWER(name) = LOWER(?)');
         const insertRaiderStmt = db.prepare('INSERT INTO raiders (name, class, player_id) VALUES (?, ?, ?)');
         const updateRaiderStmt = db.prepare('UPDATE raiders SET class = ?, player_id = ? WHERE id = ?');
+        const updateRaiderPlayerOnlyStmt = db.prepare('UPDATE raiders SET player_id = ? WHERE id = ?');
 
         let createdRaiders = 0;
         let updatedRaiders = 0;
         let createdPlayers = 0;
 
+        // --- FASE 1: Crear/Actualizar Raiders y gestionar sus dueños directos ---
         for (const item of playersList) {
             const charName = String(item.name || item.nickname || item.character || item.character_name || '').trim();
             const charClass = String(item.class || item.character_class || item.spec || 'PALADIN').toUpperCase().trim();
 
             if (!charName) continue;
 
+            // Intentar buscar dueño directo por si viene en la propiedad tradicional
             const ownerNameInput = item.player || item.owner || item.player_name || item.owner_name || item.nickname_player || item.cuenta || '';
-            const ownerName = String(ownerNameInput).trim();
+            let ownerName = String(ownerNameInput).trim();
+
+            // Regla de negocio: Si el personaje es un "Main", él mismo define el nombre de la "cuenta" por defecto
+            const mainName = item.main ? String(item.main).trim() : null;
+            if (!ownerName && !mainName) {
+                // Si no tiene main ni owner especificado, asumimos que él mismo es su player/cuenta principal
+                ownerName = charName;
+            }
 
             let playerId = null;
             if (ownerName && ownerName.toLowerCase() !== '[ sin asignar ]') {
@@ -613,6 +626,7 @@ function bulkImportPlayers(playersList) {
                 }
             }
 
+            // Guardar o actualizar el Raider en la base de datos
             const dbRaider = getRaiderStmt.get(charName);
             if (!dbRaider) {
                 insertRaiderStmt.run(charName, charClass, playerId);
@@ -626,6 +640,7 @@ function bulkImportPlayers(playersList) {
                     finalClass = charClass;
                     shouldUpdate = true;
                 }
+                // Solo sobreescribimos el player_id si encontramos uno explícito en esta fase
                 if (playerId !== null && dbRaider.player_id !== playerId) {
                     finalPlayerId = playerId;
                     shouldUpdate = true;
@@ -638,13 +653,40 @@ function bulkImportPlayers(playersList) {
             }
         }
 
+        // --- FASE 2: Resolver relaciones de Alters ("main") ---
+        // Ahora que todos los personajes existen en la BD, vinculamos los alters al player_id de su main
+        for (const item of playersList) {
+            const charName = String(item.name || item.nickname || item.character || item.character_name || '').trim();
+            const mainName = item.main ? String(item.main).trim() : null;
+
+            if (!charName || !mainName) continue;
+
+            // 1. Buscamos al alter en la base de datos para obtener su estado actual
+            const dbAlter = getRaiderStmt.get(charName);
+            // 2. Buscamos al personaje "Main" en la base de datos
+            const dbMain = getRaiderStmt.get(mainName);
+
+            if (dbAlter && dbMain && dbMain.player_id) {
+                // Si el alter no tiene el player_id de su main, lo actualizamos
+                if (dbAlter.player_id !== dbMain.player_id) {
+                    updateRaiderPlayerOnlyStmt.run(dbMain.player_id, dbAlter.id);
+                    
+                    // Si no se había contado como actualizado en la Fase 1, lo sumamos aquí
+                    // (Evita duplicar estadísticas si ya cambió de clase en la fase 1)
+                    if (dbAlter.class === String(item.class || '').toUpperCase().trim()) {
+                        updatedRaiders++;
+                    }
+                }
+            }
+        }
+
         db.exec('COMMIT;');
         return {
             success: true,
             createdRaiders,
             updatedRaiders,
             createdPlayers,
-            message: `Importación completada: ${createdRaiders} personajes creados, ${updatedRaiders} actualizados, ${createdPlayers} cuentas creadas.`
+            message: `Importación completada: ${createdRaiders} personajes creados, ${updatedRaiders} actualizados (incluyendo asignación de alters), ${createdPlayers} cuentas gestionadas.`
         };
     } catch (error) {
         db.exec('ROLLBACK;');
@@ -653,10 +695,27 @@ function bulkImportPlayers(playersList) {
     }
 }
 
+function getAllGuildsWithStatus() {
+    return db.prepare('SELECT * FROM guilds ORDER BY is_active DESC, name ASC').all();
+}
+
+function updateGuildStatus(guildId, isActive) {
+    const result = db.prepare('UPDATE guilds SET is_active = ? WHERE id = ?').run(isActive ? 1 : 0, guildId);
+    if (result.changes === 0) {
+        throw new Error('No se encontró la guild con ese ID.');
+    }
+    return {
+        id: guildId,
+        is_active: isActive
+    };
+}
+
 const dbmanager = {
     initDatabase,
     getAllGuilds,
+    getAllGuildsWithStatus,
     createGuild,
+    updateGuildStatus,
     getAllSessionsHistory,
     getGuildHistory,
     getPlayerProfile,

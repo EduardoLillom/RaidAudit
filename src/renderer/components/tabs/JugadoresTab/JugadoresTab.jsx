@@ -3,7 +3,6 @@ import SidebarPlayers from './SidebarPlayers';
 import ExpedienteRaider from './ExpedienteRaider';
 import VincularAlterModal from './VincularAlterModal';
 import RaiderNotesModal from '../../shared/RaiderNotesModal';
-import ImportarJugadoresModal from './ImportarJugadoresModal';
 
 export default function JugadoresTab({ targetRaider, onTargetHandled }) {
     const [searchTerm, setSearchTerm] = useState('');
@@ -21,9 +20,6 @@ export default function JugadoresTab({ targetRaider, onTargetHandled }) {
 
     // 🔗 ESTADOS: Gestoón de Notas
     const [showNotesModal, setShowNotesModal] = useState(false);
-
-    // 📥 ESTADOS: Importación Masiva
-    const [showImportModal, setShowImportModal] = useState(false);
 
 
     // 🔍 ACCIÓN: Consulta de búsqueda principal
@@ -262,7 +258,6 @@ export default function JugadoresTab({ targetRaider, onTargetHandled }) {
                 loadingList={loadingList}
                 onSearch={ejecutarBusqueda}
                 onSelectRaider={handleSelectRaider}
-                onOpenImportModal={() => setShowImportModal(true)}
             />
 
             {/* PANEL DERECHO: EXPEDIENTE INDIVIDUAL */}
@@ -300,12 +295,6 @@ export default function JugadoresTab({ targetRaider, onTargetHandled }) {
                     onSave={handleGuardarNota}
                 />
             )}
-
-            <ImportarJugadoresModal 
-                isOpen={showImportModal}
-                onClose={() => setShowImportModal(false)}
-                onImportSuccess={() => ejecutarBusqueda(searchTerm)}
-            />
 
         </div>
     );
