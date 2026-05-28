@@ -1,11 +1,37 @@
 import React from 'react';
 
 export default function ExpedienteHeader({ profile, selectedRaider }) {
+    const REALM = 'Icecrown';
+    
+    // Corrección: Usamos selectedRaider en lugar de raider. 
+    // Añadimos un fallback (selectedRaider?.nickname o name) para evitar crashes si no viene el dato.
+    const raiderName = selectedRaider?.nickname || selectedRaider?.name || '';
+    const armoryUrl = `https://armory.warmane.com/character/${encodeURIComponent(raiderName)}/${REALM}/summary`;
+
+    const handleNameClick = (e) => {
+        e.preventDefault();
+        if (!raiderName) return; // Evita abrir URLs vacías
+
+        if (window.apiDB?.openExternalLink) {
+            window.apiDB.openExternalLink(armoryUrl);
+        } else {
+            window.open(armoryUrl, '_blank');
+        }
+    };
+    
     return (
         <div className="flex justify-between items-start border-b border-[#414868]/30 pb-4">
             <div>
                 <h3 className="text-xs font-bold text-[#e0af68] uppercase tracking-wider flex items-center gap-2">
-                    <span>// EXPEDIENTE INDIVIDUAL: {selectedRaider.nickname.toUpperCase()}</span>
+                    {/* Convertimos el texto en un enlace/botón interactivo */}
+                    <button 
+                        onClick={handleNameClick} 
+                        className="hover:underline cursor-pointer text-left transition-all hover:text-[#ff9e3b]"
+                        title="Ver armería en Warmane"
+                    >
+                        // EXPEDIENTE INDIVIDUAL: {raiderName.toUpperCase()}
+                    </button>
+                    
                     {profile.unassigned && (
                         <span className="text-[9px] bg-[#e0af68]/10 text-[#e0af68] border border-[#e0af68]/30 px-1.5 py-0.5 rounded">
                             SIN CUENTA MAESTRA
@@ -15,7 +41,7 @@ export default function ExpedienteHeader({ profile, selectedRaider }) {
                 <p className="text-[10px] text-[#565f89] mt-1">
                     {profile.unassigned 
                         ? "Este personaje está operando como PUG independiente (sin dueño asignado)."
-                        : `Personaje vinculado a la cuenta de: ${selectedRaider.owner_name || 'Desconocido'}`}
+                        : `Personaje vinculado a la cuenta de: ${selectedRaider?.owner_name || 'Desconocido'}`}
                 </p>
             </div>
             
