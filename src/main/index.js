@@ -11,13 +11,26 @@ const isDev = !app.isPackaged;
 const devServerURL = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173';
 
 function createWindow() {
+    // Calcular la ruta del preload correctamente en dev y build
+    let preloadPath;
+    if (isDev) {
+        preloadPath = path.join(__dirname, '../preload/preload.cjs');
+    } else {
+        // En producción, usar app.getAppPath() para obtener la ruta correcta
+        preloadPath = path.join(app.getAppPath(), 'src', 'preload', 'preload.cjs');
+    }
+    
+    console.log('[Main] isDev:', isDev);
+    console.log('[Main] App path:', app.getAppPath());
+    console.log('[Main] Preload path:', preloadPath);
+    
     mainWindow = new BrowserWindow({
         width: 1600,
         height: 1000,
         minWidth: 1200,
         minHeight: 800,
         webPreferences: {
-            preload: path.join(__dirname, '../preload/preload.js'),
+            preload: preloadPath,
             nodeIntegration: false,
             contextIsolation: true,
         }
@@ -30,7 +43,11 @@ function createWindow() {
         mainWindow.webContents.openDevTools();
     } else {
         // Carga el archivo index.html
-        mainWindow.loadFile(path.join(__dirname, '../../dist/index.html'));
+        const indexPath = path.join(__dirname, '../../dist/index.html');
+        console.log('Loading index.html from:', indexPath);
+        mainWindow.loadFile(indexPath).catch(err => {
+            console.error('Error loading index.html:', err);
+        });
     }
 
     mainWindow.on('closed', () => {
@@ -43,9 +60,16 @@ app.whenReady().then(() => {
         dbmanager.initDatabase();
     } catch (error) {
         console.error('Error inicializando la base de datos:', error);
+        process.stderr.write(`[DB ERROR] ${error.message}\n`);
     }
 
     createWindow();
+    
+    // Handler para reportar errores desde el renderer
+    ipcMain.handle('log-error', (event, errorMsg) => {
+        console.error('[RENDERER ERROR]', errorMsg);
+        return { logged: true };
+    });
     
     // IPC Handlers de la Base de Datos
     ipcMain.handle('db:getAllGuilds', () => dbmanager.getAllGuilds());

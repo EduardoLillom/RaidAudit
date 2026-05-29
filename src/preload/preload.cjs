@@ -1,5 +1,6 @@
-// CAMBIADO: Usamos require en lugar de import
 const { contextBridge, ipcRenderer } = require('electron');
+
+console.log('[Preload] Initializing preload script...');
 
 contextBridge.exposeInMainWorld('apiDB', {
     getAllGuilds: () => ipcRenderer.invoke('db:getAllGuilds'),
@@ -24,5 +25,8 @@ contextBridge.exposeInMainWorld('apiDB', {
     deleteNote: (noteId) => ipcRenderer.invoke('db:deleteNote', noteId),
     updateNote: (noteId, newText, newSeverity) => ipcRenderer.invoke('db:updateNote', noteId, newText, newSeverity),
     reemplazarRaider: (sessionId, raiderOutId, raiderInId, noteText, subgroup) => ipcRenderer.invoke('db:reemplazarRaider', sessionId, raiderOutId, raiderInId, noteText, subgroup),
-    bulkImportPlayers: (playersList) => ipcRenderer.invoke('db:bulkImportPlayers', playersList)
+    bulkImportPlayers: (playersList) => ipcRenderer.invoke('db:bulkImportPlayers', playersList),
+    logError: (errorMsg) => ipcRenderer.invoke('log-error', errorMsg)
 });
+
+console.log('[Preload] API exposed successfully');

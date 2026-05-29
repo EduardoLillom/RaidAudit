@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './components/layout/Header';
 import MatrizTab from './components/tabs/MatrizTab/MatrizTab';
 import JugadoresTab from './components/tabs/JugadoresTab/JugadoresTab';
@@ -9,6 +9,26 @@ import MoreOptionsTab from './components/tabs/MoreOptionsTab/MoreOptionsTab';
 export default function App() {
     const [activeTab, setActiveTab] = useState('matriz');
     const [pendingRaiderSelection, setPendingRaiderSelection] = useState(null);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        // Verificar que la API está disponible
+        if (!window.apiDB) {
+            const msg = 'Error: API no disponible. El preload no se cargó correctamente.';
+            console.error(msg);
+            setError(msg);
+            window.apiDB?.logError?.(msg);
+            return;
+        }
+
+        // Intentar cargar los guilds para verificar que la BD funciona
+        window.apiDB.getAllGuilds()
+            .catch(err => {
+                const msg = `Error conectando a la base de datos: ${err.message}`;
+                console.error(msg, err);
+                setError(msg);
+            });
+    }, []);
 
     const tabs = [
         { id: 'matriz', label: '[01] Analizador Raid', color: 'bg-[#41a6b5]' },
@@ -26,6 +46,12 @@ export default function App() {
 
     return (
         <div className="h-screen flex flex-col overflow-hidden select-none bg-[#1a1b26]">
+            {error && (
+                <div className="bg-red-900 border border-red-700 p-4 m-4 rounded text-red-100">
+                    <p className="font-bold">Error de inicialización:</p>
+                    <p>{error}</p>
+                </div>
+            )}
             <Header tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />
             
             <div className="flex-1 p-6 overflow-hidden">

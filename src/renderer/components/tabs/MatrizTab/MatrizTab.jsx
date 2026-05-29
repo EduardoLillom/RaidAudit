@@ -212,11 +212,6 @@ export default function MatrizTab({ onSelectRaider }) {
                 if (!finalRaiderId) {
                     finalRaiderId = await window.apiDB.addRaiderToSession(activeSession.id, cleanName, newClass || 'PALADIN', subgroup);
                 }
-
-                if (cleanNote) {
-                    await window.apiDB.addRaiderNota(finalRaiderId, activeSession.id, cleanNote, 'LOW');
-                }
-
                 await window.apiDB.reemplazarRaider(
                     activeSession.id,
                     Number(raiderOutId),
@@ -226,9 +221,6 @@ export default function MatrizTab({ onSelectRaider }) {
                 );
             } else {
                 finalRaiderId = await window.apiDB.addRaiderToSession(activeSession.id, cleanName, newClass || 'PALADIN', subgroup);
-                if (cleanNote) {
-                    await window.apiDB.addRaiderNota(finalRaiderId, activeSession.id, cleanNote, 'LOW');
-                }
             }
 
             const updatedRaiders = await window.apiDB.getSessionRaiders(activeSession.id);
