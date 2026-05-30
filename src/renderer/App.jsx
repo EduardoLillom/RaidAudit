@@ -22,7 +22,7 @@ export default function App() {
         }
 
         // Intentar cargar los guilds para verificar que la BD funciona
-        window.apiDB.getAllGuilds()
+        window.apiDB.getAllGuildsActive()
             .catch(err => {
                 const msg = `Error conectando a la base de datos: ${err.message}`;
                 console.error(msg, err);

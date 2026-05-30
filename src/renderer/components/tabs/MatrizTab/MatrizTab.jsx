@@ -24,7 +24,7 @@ export default function MatrizTab({ onSelectRaider }) {
 
     async function loadGuilds() {
         try {
-            const data = await window.apiDB.getAllGuilds();
+            const data = await window.apiDB.getAllGuildsActive();
             setGuilds(data);
         } catch (error) {
             console.error('Error loading guilds:', error);
@@ -118,7 +118,7 @@ export default function MatrizTab({ onSelectRaider }) {
             const groupCounters = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
 
             for (let r of raidersData) {
-                const dbStatus = await window.apiDB.getRaiderStatus(r.name);
+                const dbStatus = await window.apiDB.getRaiderStatus(r.name, r.class);
                 const g = Number(r.subgroup);
                 let assignedSlot = null;
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import SidebarPlayers from './SidebarPlayers';
 import ExpedienteRaider from './ExpedienteRaider';
 import VincularAlterModal from './VincularAlterModal';
@@ -12,19 +12,27 @@ export default function JugadoresTab({ targetRaider, onTargetHandled }) {
     const [loadingList, setLoadingList] = useState(false);
     const [loadingProfile, setLoadingProfile] = useState(false);
 
+    // 🎯 REF: Guarda la última búsqueda confirmada para evitar repeticiones innecesarias
+    const ultimaBusquedaRef = useRef('');
+
     // 🔗 ESTADOS: Gestión de Vinculación de Alters
     const [showLinkModal, setShowLinkModal] = useState(false);
     const [alterSearchTerm, setAlterSearchTerm] = useState('');
     const [alterResults, setAlterResults] = useState([]);
     const [loadingAlters, setLoadingAlters] = useState(false);
 
-    // 🔗 ESTADOS: Gestoón de Notas
+    // 🔗 ESTADOS: Gestión de Notas
     const [showNotesModal, setShowNotesModal] = useState(false);
 
 
     // 🔍 ACCIÓN: Consulta de búsqueda principal
     async function ejecutarBusqueda(termino) {
+        // 🛑 CANDADO: Si ya está buscando o el término es el mismo que el anterior, cancela.
+        if (loadingList || termino === ultimaBusquedaRef.current) return;
+
         setLoadingList(true);
+        ultimaBusquedaRef.current = termino; // Registramos qué estamos buscando
+
         try {
             const results = await window.apiDB.searchPlayers(termino);
             setRaiders(results || []);
@@ -39,6 +47,7 @@ export default function JugadoresTab({ targetRaider, onTargetHandled }) {
     useEffect(() => {
         if (searchTerm.trim() === '') {
             setLoadingList(true);
+            ultimaBusquedaRef.current = '';
             window.apiDB.searchPlayers('')
                 .then(iniciales => setRaiders(iniciales || []))
                 .catch(err => console.error("Error en carga base:", err))
@@ -46,6 +55,7 @@ export default function JugadoresTab({ targetRaider, onTargetHandled }) {
             return;
         }
 
+        // El debounce espera 350ms desde que el usuario deja de escribir
         const delayDebounceFn = setTimeout(() => {
             ejecutarBusqueda(searchTerm);
         }, 350);
@@ -67,6 +77,7 @@ export default function JugadoresTab({ targetRaider, onTargetHandled }) {
 
             try {
                 setSearchTerm(targetName);
+                ultimaBusquedaRef.current = targetName; // Sincronizamos el ref
                 const results = await window.apiDB.searchPlayers(targetName);
                 const matched = (results || []).find(r => (r.raider_id || r.id) === (targetRaider.raider_id || targetRaider.id));
                 const fallbackTarget = {
@@ -131,6 +142,12 @@ export default function JugadoresTab({ targetRaider, onTargetHandled }) {
         const rId = raider.raider_id || raider.id; 
         const pId = raider.player_id || raider.owner_id || 0;
 
+        // 🛑 CANDADO: Si el raider seleccionado ya es el actual y ya tenemos su perfil, no hagas nada
+        const rIdActual = selectedRaider?.raider_id || selectedRaider?.id;
+        if (rId === rIdActual && profile) {
+            return; 
+        }
+
         setSelectedRaider(raider);
         setLoadingProfile(true);
         
@@ -181,7 +198,7 @@ export default function JugadoresTab({ targetRaider, onTargetHandled }) {
             }
         } catch (error) {
             alert(`Error en la fusión: ${error.message}`);
-        } {
+        } finally {
             setLoadingProfile(false);
         }
     }
@@ -190,19 +207,15 @@ export default function JugadoresTab({ targetRaider, onTargetHandled }) {
         if (!confirm("¿Seguro que quieres borrar este registro de sanción?")) return;
         try {
             await window.apiDB.deleteNote(Number(noteId));
-            await handleSelectRaider(selectedRaider); // Refresca expediente
+            await handleSelectRaider(selectedRaider); 
         } catch (e) {
             console.error(e);
         }
     }
 
-    // ✍️ ACCIÓN: Editar nota inline desde la tarjeta
     async function handleEditarNotaInline(noteId, newText, newSeverity) {
         try {
-            // Llama directamente a tu consulta SQL UPDATE
             await window.apiDB.updateNote(Number(noteId), newText, newSeverity);
-            
-            // Volvemos a pedir el perfil para pintar los cambios frescos
             await handleSelectRaider(selectedRaider);
         } catch (error) {
             console.error("Error al actualizar la nota:", error);
@@ -214,18 +227,12 @@ export default function JugadoresTab({ targetRaider, onTargetHandled }) {
         const rId = selectedRaider.raider_id || selectedRaider.id || raiderIdOrName;
 
         try {
-            // Ejecutamos la inserción (pasa el ID del raider, null para sessionId, texto y severidad)
             const insertId = await window.apiDB.addRaiderNota(Number(rId), null, noteText, severity);
 
-            // 🎯 Como tu DB retorna el 'lastInsertRowid' (un número mayor a 0 si se insertó), 
-            // validamos simplemente que la respuesta exista o sea un ID válido.
             if (insertId) {
-                setShowNotesModal(false); // 🔓 ¡Ahora sí se cerrará inmediatamente!
-                
-                // Refrescamos los datos del expediente para ver la nota en la lista
+                setShowNotesModal(false); 
                 await handleSelectRaider(selectedRaider);
                 
-                // Refrescamos la barra lateral por si cambió el score total de gravedad
                 if (typeof searchTerm !== 'undefined') {
                     const listaActualizada = await window.apiDB.searchPlayers(searchTerm);
                     setRaiders(listaActualizada || []);
@@ -237,26 +244,22 @@ export default function JugadoresTab({ targetRaider, onTargetHandled }) {
         }
     }
 
-
     function cerrarModalAlter() {
         setShowLinkModal(false);
         setAlterSearchTerm('');
         setAlterResults([]);
     }
 
-
-
     return (
         <div className="flex-1 gap-6 overflow-hidden flex h-full relative">
             
-            {/* PANEL IZQUIERDO: BUSCADOR E ÍNDICE */}
+            {/* PANEL IZQUIERDO: Ya no requiere pasar onSearch para un botón manual */}
             <SidebarPlayers 
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
                 raiders={raiders}
                 selectedRaider={selectedRaider}
                 loadingList={loadingList}
-                onSearch={ejecutarBusqueda}
                 onSelectRaider={handleSelectRaider}
             />
 

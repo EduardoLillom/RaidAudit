@@ -58,7 +58,7 @@ export default function GuildsTab() {
 
     async function loadGuilds() {
         try {
-            const data = await window.apiDB.getAllGuilds();
+            const data = await window.apiDB.getAllGuildsWithStatus();
             setGuilds(data);
         } catch (error) {
             console.error('Error loading guilds:', error);
