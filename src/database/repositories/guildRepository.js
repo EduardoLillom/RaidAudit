@@ -6,7 +6,7 @@ export const guildRepository = {
         return getDB().prepare('SELECT * FROM guilds WHERE is_active = 1 ORDER BY name ASC').all();
     },
     findAll() {
-        return getDB().prepare('SELECT * FROM guilds ORDER BY is_active DESC, name ASC').all();
+        return getDB().prepare('SELECT * FROM guilds WHERE id != 1 ORDER BY name ASC').all();
     },
     findByName(name) {
         return getDB().prepare('SELECT id, name FROM guilds WHERE LOWER(name) = LOWER(?)').get(name);
@@ -17,5 +17,5 @@ export const guildRepository = {
     },
     updateStatus(id, isActive) {
         return getDB().prepare('UPDATE guilds SET is_active = ? WHERE id = ?').run(isActive ? 1 : 0, id);
-    }
+    }  
 };
