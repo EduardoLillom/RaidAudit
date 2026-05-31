@@ -34,6 +34,7 @@
         "dist/**/*",
         "src/main/**/*",
         "src/preload/**/*",
+        "src/database/**/*",
         "node_modules/**/*"
       ],
       "directories": {
