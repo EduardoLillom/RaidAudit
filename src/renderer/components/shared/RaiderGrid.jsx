@@ -12,11 +12,23 @@ export default function RaiderGrid({
         onNoteSaved
     }) {
 
+    // ── PROCESAMIENTO INTELIGENTE DE SLOTS ──────────────────────────
     const slots = Array.from({ length: 25 }, (_, i) => {
         if (activeSession) {
+            // Sesión Activa: Mapeo directo por índice de array
             return raiders[i] || null;
         }
-        return raiders.find(r => r.slot === i) || null;
+
+        // Historial (Sesión Pasada): Mapeo adaptativo por .subgroup
+        // Cada grupo (1 al 5) ocupa exactamente 5 slots correlativos.
+        const targetGroup = Math.floor(i / 5) + 1; // Grupo correspondiente a este slot (1-5)
+        const indexInGroup = i % 5;                 // Posición interna dentro del grupo (0-4)
+
+        // Filtramos todos los raiders que pertenecen a este grupo
+        const raidersInThisGroup = raiders.filter(r => Number(r.subgroup) === targetGroup);
+
+        // Si existe un jugador para esta posición interna, lo asignamos; si no, queda vacío
+        return raidersInThisGroup[indexInGroup] || null;
     });
 
     const [activeRaider, setActiveRaider] = useState(null);
