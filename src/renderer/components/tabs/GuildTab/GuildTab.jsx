@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
+// Importamos tu componente RaiderGrid
+import RaiderGrid from '../../shared/RaiderGrid';
 
 function calculateDuration(startTime, endTime) {
     if (!startTime || !endTime) return '--:--';
@@ -51,6 +53,11 @@ export default function GuildsTab() {
     const [isCreatingGuild, setIsCreatingGuild] = useState(false);
     const [showFiltersPanel, setShowFiltersPanel] = useState(false);
 
+    // ── ESTADOS PARA EL MODAL DE DETALLES DE RAID ───────────────────
+    const [selectedSessionDetails, setSelectedSessionDetails] = useState(null);
+    const [modalRaiders, setModalRaiders] = useState([]);
+    const [isLoadingModal, setIsLoadingModal] = useState(false);
+
     useEffect(() => {
         loadGuilds();
         loadSessions();
@@ -58,7 +65,7 @@ export default function GuildsTab() {
 
     async function loadGuilds() {
         try {
-            const data = await window.apiDB.getAllGuilds();
+            const data = await window.apiDB.getAllGuildsWithStatus();
             setGuilds(data);
         } catch (error) {
             console.error('Error loading guilds:', error);
@@ -76,6 +83,31 @@ export default function GuildsTab() {
         } finally {
             setIsLoading(false);
         }
+    }
+
+    // ── MANEJADOR PARA ABRIR EL MODAL Y CARGAR SU ROSTER ──────────
+    async function handleRowClick(session) {
+        setSelectedSessionDetails(session);
+        setIsLoadingModal(true);
+        setModalRaiders([]);
+        try {
+            // Usamos el método real expuesto en tu preload: getSessionRaiders
+            if (window.apiDB?.getSessionRaiders) {
+                const raidersData = await window.apiDB.getSessionRaiders(session.id);
+                setModalRaiders(raidersData);
+            } else {
+                console.warn('El método window.apiDB.getSessionRaiders no está disponible.');
+            }
+        } catch (error) {
+            console.error('Error loading session raiders:', error);
+        } finally {
+            setIsLoadingModal(false);
+        }
+    }
+
+    function handleCloseModal() {
+        setSelectedSessionDetails(null);
+        setModalRaiders([]);
     }
 
     const filteredSessions = useMemo(() => {
@@ -136,12 +168,11 @@ export default function GuildsTab() {
     }
 
     return (
-        <div className="flex-1 flex min-h-0 flex-col gap-2 overflow-hidden">
+        <div className="flex-1 flex min-h-0 flex-col gap-2 overflow-hidden relative">
 
             {/* ── BARRA COMPACTA SIEMPRE VISIBLE ─────────────────────── */}
             <div className="flex-shrink-0 rounded-xl border border-[#414868] bg-[#1a1b26]/80 px-4 py-2 shadow-lg">
                 <div className="flex items-center gap-3 flex-wrap">
-
                     {/* Título + conteo */}
                     <div className="flex items-center gap-2 shrink-0">
                         <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#41a6b5]">
@@ -196,16 +227,14 @@ export default function GuildsTab() {
                 </div>
             </div>
 
-            {/* ── PANEL DESPLEGABLE ───────────────────────────────────── */}
+            {/* ── PANEL DESPLEGABLE DE FILTROS ───────────────────────── */}
             {showFiltersPanel && (
                 <div className="flex-shrink-0 rounded-xl border border-[#414868]/70 bg-[#1a1b26]/60 p-3">
                     <div className="grid grid-cols-1 xl:grid-cols-[1fr,0.65fr] gap-3">
-
                         {/* Filtros avanzados */}
                         <div className="rounded-xl border border-[#2a3145] bg-gradient-to-br from-[#161a27] via-[#1a1f31] to-[#222a3f] p-3">
                             <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#41a6b5] mb-3">Filtros avanzados</p>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-
                                 <label className="flex flex-col gap-1 text-[9px] font-bold uppercase tracking-[0.12em] text-[#565f89]">
                                     <span>Guild</span>
                                     <select
@@ -317,7 +346,7 @@ export default function GuildsTab() {
                 </div>
             )}
 
-            {/* ── TABLA DE RESULTADOS (ocupa todo el espacio restante) ── */}
+            {/* ── TABLA DE RESULTADOS ─────────────────────────────────── */}
             <div className="flex-1 min-h-0 overflow-hidden rounded-xl border border-[#414868] bg-[#1a1b26]/60">
                 <div className="h-full overflow-y-auto">
                     <table className="w-full text-left text-xs border-collapse">
@@ -349,8 +378,14 @@ export default function GuildsTab() {
                                 </tr>
                             ) : (
                                 filteredSessions.map((session) => (
-                                    <tr key={session.id} className="hover:bg-[#1f2335]/50 transition-colors">
-                                        <td className="py-2.5 pl-4 pr-2 font-bold text-[#41a6b5] font-mono text-[10px]">#{session.id}</td>
+                                    <tr 
+                                        key={session.id} 
+                                        onClick={() => handleRowClick(session)}
+                                        className="hover:bg-[#1f2335]/70 transition-colors cursor-pointer group"
+                                    >
+                                        <td className="py-2.5 pl-4 pr-2 font-bold text-[#41a6b5] font-mono text-[10px] group-hover:text-[#7aa2f7]">
+                                            #{session.id}
+                                        </td>
                                         <td className="py-2.5 pr-2 text-[#a9b1d6]">{session.guild_name || '--'}</td>
                                         <td className="py-2.5 pr-2">
                                             <span className="inline-flex items-center rounded border border-[#bb9af7]/30 bg-[#bb9af7]/10 px-1.5 py-0.5 text-[9px] font-bold uppercase text-[#bb9af7]">
@@ -374,6 +409,62 @@ export default function GuildsTab() {
                     </table>
                 </div>
             </div>
+
+            {/* ── MODAL INYECTADO: DETALLES DEL ROSTER DE LA RAID ───────── */}
+            {selectedSessionDetails && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#111216]/80 backdrop-blur-sm p-4">
+                    <div className="w-full max-w-6xl rounded-2xl border border-[#414868] bg-[#1a1b26] shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                        
+                        {/* Header del Modal */}
+                        <div className="flex items-center justify-between border-b border-[#414868] bg-[#11131d] px-6 py-4">
+                            <div className="flex items-center gap-3">
+                                <span className="rounded border border-[#bb9af7]/40 bg-[#bb9af7]/10 px-2 py-0.5 text-xs font-bold uppercase text-[#bb9af7]">
+                                    {selectedSessionDetails.instance || 'Raid'}
+                                </span>
+                                <div>
+                                    <h3 className="text-sm font-bold text-[#e8eeff]">
+                                        Roster del Historial — {selectedSessionDetails.guild_name || 'Sin Guild'}
+                                    </h3>
+                                    <p className="text-[11px] text-[#565f89] font-mono mt-0.5">
+                                        ID: #{selectedSessionDetails.id} | Fecha: {String(selectedSessionDetails.date || '').slice(0, 10)} | Duración: {calculateDuration(selectedSessionDetails.start_time, selectedSessionDetails.end_time)}
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={handleCloseModal}
+                                className="rounded-lg border border-[#414868] bg-[#1a1b26] p-1.5 text-xs text-[#a9b1d6] hover:text-[#f7768e] hover:border-[#f7768e]/40 transition cursor-pointer"
+                            >
+                                ✕ Cerrar
+                            </button>
+                        </div>
+
+                        {/* Cuerpo del Modal */}
+                        <div className="flex-1 overflow-y-auto p-6 bg-gradient-to-b from-[#1a1b26] to-[#161722]">
+                            {isLoadingModal ? (
+                                <div className="py-32 text-center text-[#565f89] text-xs font-mono uppercase tracking-widest animate-pulse">
+                                    [ Cargando Roster desde la Base de Datos... ]
+                                </div>
+                            ) : (
+                                <RaiderGrid 
+                                    raiders={modalRaiders} 
+                                    activeSession={null} // Pasamos null porque es historial, deshabilita drag-and-drop y reemplazos automáticos
+                                    onReorderRaiders={null}
+                                    onLiveReplacement={null}
+                                    onSelectRaider={(raider) => console.log('Raider consultado:', raider)}
+                                    onNoteSaved={async () => {
+                                        // Recarga los integrantes si añades notas en el modal histórico
+                                        if (window.apiDB?.getRaidersBySession) {
+                                            const r = await window.apiDB.getRaidersBySession(selectedSessionDetails.id);
+                                            setModalRaiders(r);
+                                        }
+                                    }}
+                                />
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
