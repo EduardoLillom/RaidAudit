@@ -1,25 +1,43 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-/* Custom styles for specific elements if needed */
-body {
-    @apply bg-[#1a1b26] text-white select-none;
+@theme {
+  /* Al quitarle el prefijo "-bg", las clases quedan ultra intuitivas */
+  --color-tokyo-main: #1a1b26;      /* bg-tokyo-main (Fondo de paneles) */
+  --color-tokyo-dark: #16161e;      /* bg-tokyo-dark (Fondo de la app / pool) */
+  --color-tokyo-panel: #24283b;     /* bg-tokyo-panel o border-tokyo-panel */
+  
+  /* Para los colores de acento, el nombre del color es más que suficiente */
+  --color-tokyo-border: #414868;    /* border-tokyo-border */
+  --color-tokyo-comment: #565f89;   /* text-tokyo-comment */
+  --color-tokyo-cyan: #41a6b5;      /* text-tokyo-cyan */
+  --color-tokyo-purple: #bb9af7;    /* text-tokyo-purple */
+  --color-tokyo-orange: #e0af68;    /* text-tokyo-orange */
 }
 
-::-webkit-scrollbar {
-    width: 8px;
-}
 
-::-webkit-scrollbar-track {
-    background: #1f2335;
-}
 
-::-webkit-scrollbar-thumb {
-    background: #414868;
+@layer base {
+  ::-webkit-scrollbar {
+    width: 8px;               /* Ancho del scroll vertical */
+    height: 8px;              /* Alto del scroll horizontal */
+  }
+  
+  /* El canal o fondo por donde se mueve la barra */
+  ::-webkit-scrollbar-track {
+    background: var(--color-tokyo-dark);
     border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #565f89;
+  }
+  
+  /* El indicador/tirador que arrastras */
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-tokyo-panel);
+    border: 1px solid var(--color-tokyo-border);
+    border-radius: 4px;
+  }
+  
+  /* Cuando pasas el mouse por encima del tirador (Efecto Neon Tokyo) */
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-tokyo-comment);
+    border-color: var(--color-tokyo-purple);
+  }
 }
