@@ -163,12 +163,23 @@ export default function MatrizTab({ onSelectRaider }) {
     const handleReorderRaiders = (raiderName, targetSlot) => {
         setRaiders(prevRaiders => {
             const updated = prevRaiders.map(raider => {
+                // CASO 1: Es el jugador que estamos arrastrando
                 if (raider.name === raiderName) {
-                    return { ...raider, slot: targetSlot };
+                    return { 
+                        ...raider, 
+                        slot: targetSlot,
+                        // Si va a la reserva (null), le alteramos el subgroup a 0 
+                        // para que el Grid deje de reclamarlo en su grupo original.
+                        subgroup: targetSlot === null ? 0 : raider.subgroup 
+                    }; 
                 }
+                
+                // CASO 2: Es el jugador que ESTABA en el slot de destino (Intercambio)
+                // Solo opera si el destino NO es la reserva (targetSlot !== null)
                 if (targetSlot !== null && raider.slot === targetSlot) {
-                    return { ...raider, slot: null };
+                    return { ...raider, slot: null, subgroup: 0 };
                 }
+                
                 return raider;
             });
 

@@ -38,7 +38,7 @@ export default function SidebarPlayers({
                     <button
                         onClick={() => onSearch(searchTerm)}
                         disabled={loadingList}
-                        className="bg-tokyo-panel hover:bg-tokyo-cyan/20 border border-tokyo-border hover:border-tokyo-cyan rounded px-3 py-2 text-[10px] text-tokyo-cyan font-bold uppercase tracking-wider transition-all disabled:opacity-50 min-w-[70px]"
+                        className="bg-tokyo-panel hover:bg-tokyo-cyan/20 border border-tokyo-border hover:border-tokyo-cyan rounded px-3 py-2 text-[10px] text-tokyo-cyan font-bold uppercase tracking-wider transition-all disabled:opacity-50 min-w-17.5"
                     >
                         {loadingList ? '...' : 'Buscar'}
                     </button>

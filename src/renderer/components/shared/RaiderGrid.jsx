@@ -15,19 +15,27 @@ export default function RaiderGrid({
     // ── PROCESAMIENTO INTELIGENTE DE SLOTS ──────────────────────────
     const slots = Array.from({ length: 25 }, (_, i) => {
         if (activeSession) {
-            // Sesión Activa: Mapeo directo por índice de array
+            // Sesión Activa: Mapeo directo por índice de array (Gestión en vivo)
             return raiders[i] || null;
         }
 
-        // Historial (Sesión Pasada): Mapeo adaptativo por .subgroup
-        // Cada grupo (1 al 5) ocupa exactamente 5 slots correlativos.
-        const targetGroup = Math.floor(i / 5) + 1; // Grupo correspondiente a este slot (1-5)
-        const indexInGroup = i % 5;                 // Posición interna dentro del grupo (0-4)
+        // FASE DE EDICIÓN (Antes de iniciar la raid):
+        
+        // 1. Prioridad Absoluta: Ver si un jugador ya fue asignado a este slot por Drag & Drop
+        const raiderInSlot = raiders.find(r => r.slot === i);
+        if (raiderInSlot) return raiderInSlot;
 
-        // Filtramos todos los raiders que pertenecen a este grupo
-        const raidersInThisGroup = raiders.filter(r => Number(r.subgroup) === targetGroup);
+        // 2. Si el slot está vacío, calculamos qué jugador del JSON original debería ir aquí por su .subgroup
+        const targetGroup = Math.floor(i / 5) + 1; // Grupo (1 al 5)
+        const indexInGroup = i % 5;                 // Posición interna (0 al 4)
 
-        // Si existe un jugador para esta posición interna, lo asignamos; si no, queda vacío
+        // Filtramos los raiders de este grupo que AÚN no tienen un slot asignado manualmente en otro lado
+        const raidersInThisGroup = raiders.filter(r => 
+            Number(r.subgroup) === targetGroup && 
+            (r.slot === null || r.slot === undefined)
+        );
+
+        // Retornamos el jugador que calza en la posición o null si ya se movieron o no hay más
         return raidersInThisGroup[indexInGroup] || null;
     });
 
@@ -60,38 +68,39 @@ export default function RaiderGrid({
     return (
         <div className="flex-1 relative">
             <div className="grid grid-cols-5 gap-2.5 p-1 overflow-y-auto max-h-[calc(100vh-320px)]">
-                {slots.map((raider, index) => (
-                    <div
-                        key={index}
-                        className="h-full relative group"
-                        onDragOver={(e) => e.preventDefault()}
-                        onDrop={(e) => {
-                            e.preventDefault();
-                            const raiderName = e.dataTransfer.getData('text/plain');
-                            if (!activeSession && onReorderRaiders) {
-                                onReorderRaiders(raiderName, index);
-                            }
-                        }}
-                    >
-                        {raider ? (
-                            <div
-                                draggable={!activeSession}
-                                onDragStart={(e) => e.dataTransfer.setData('text/plain', raider.name)}
-                                className={`${!activeSession ? 'cursor-grab active:cursor-grabbing' : ''} h-full transition-transform duration-150`}
-                            >
-                                <RaiderCard
-                                    raider={raider}
-                                    onOpenNotes={setActiveRaider}
-                                    activeSession={activeSession}
-                                    onReplaceTrigger={() => setReplaceTarget({
-                                        slotIndex: index,
-                                        raiderOutId: raider.id || raider.raider_id,
-                                        nameOut: raider.name
-                                    })}
-                                    onSelectRaider={onSelectRaider}
-                                />
-                            </div>
-                        ) : (
+            {slots.map((raider, index) => (
+                <div
+                    key={index}
+                    className="h-full relative group"
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                        e.preventDefault();
+                        const raiderName = e.dataTransfer.getData('text/plain');
+                        // Solo se ejecuta si NO hay sesión activa
+                        if (!activeSession && onReorderRaiders && raiderName) {
+                            onReorderRaiders(raiderName, index);
+                        }
+                    }}
+                >
+                    {raider ? (
+                        <div
+                            draggable={!activeSession} // Bloqueado automáticamente en sesión activa
+                            onDragStart={(e) => e.dataTransfer.setData('text/plain', raider.name)}
+                            className={`${!activeSession ? 'cursor-grab active:cursor-grabbing' : ''} h-full transition-transform duration-150`}
+                        >
+                            <RaiderCard
+                                raider={raider}
+                                onOpenNotes={setActiveRaider}
+                                activeSession={activeSession}
+                                onReplaceTrigger={() => setReplaceTarget({
+                                    slotIndex: index,
+                                    raiderOutId: raider.id || raider.raider_id,
+                                    nameOut: raider.name
+                                })}
+                                onSelectRaider={onSelectRaider}
+                            />
+                        </div>
+                    ) : (
                             <div
                                 onClick={() => activeSession && setReplaceTarget({ slotIndex: index, raiderOutId: null, nameOut: 'Slot Vacío' })}
                                 className={`rounded border border-dashed border-tokyo-panel flex flex-col items-center justify-center bg-[#1f2335]/20 h-full min-h-21.25 transition-all duration-200 ${
