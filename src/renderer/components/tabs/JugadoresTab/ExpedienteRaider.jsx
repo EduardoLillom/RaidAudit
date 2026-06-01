@@ -15,7 +15,7 @@ export default function ExpedienteRaider({
 }) {
     if (loadingProfile) {
         return (
-            <div className="flex-1 bg-[#1a1b26]/40 p-5 rounded-xl border border-[#414868] h-full flex items-center justify-center text-xs text-[#7aa2f7] animate-pulse">
+            <div className="flex-1 bg-tokyo-main/40 p-5 rounded-xl border border-tokyo-border h-full flex items-center justify-center text-xs text-[#7aa2f7] animate-pulse">
                 [ ACCEDIENDO A LOS REGISTROS DEL RAIDER... ]
             </div>
         );
@@ -23,14 +23,14 @@ export default function ExpedienteRaider({
 
     if (!profile || !selectedRaider) {
         return (
-            <div className="flex-1 bg-[#1a1b26]/40 p-5 rounded-xl border border-[#414868] h-full flex items-center justify-center text-xs text-[#565f89] italic">
+            <div className="flex-1 bg-tokyo-main/40 p-5 rounded-xl border border-tokyo-border h-full flex items-center justify-center text-xs text-tokyo-comment italic">
                 [ SELECCIONA UN PERSONAJE DE LA IZQUIERDA PARA VER SU EXPEDIENTE ]
             </div>
         );
     }
 
     return (
-        <div className="flex-1 bg-[#1a1b26]/40 p-5 rounded-xl border border-[#414868] overflow-y-auto h-full mb-0">
+        <div className="flex-1 bg-tokyo-main/40 p-5 rounded-xl border border-tokyo-border overflow-y-auto h-full mb-0">
             <div className="space-y-6">
                 
                 {/* Cabecera y Gravedad */}

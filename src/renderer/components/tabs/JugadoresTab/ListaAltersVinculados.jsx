@@ -14,18 +14,18 @@ const classColors = {
 };
 
 // Estilo por defecto si la clase no coincide o no está definida
-const DEFAULT_COLOR = { text: 'text-[#41a6b5]', border: 'border-[#414868]/60', bg: 'bg-[#24283b]/60' };
+const DEFAULT_COLOR = { text: 'text-tokyo-cyan', border: 'border-tokyo-border/60', bg: 'bg-tokyo-panel/60' };
 
 export default function ListaAltersVinculados({ profile, onOpenLinkModal }) {
     return (
         <div>
             <div className="flex justify-between items-center mb-2">
-                <span className="text-[10px] uppercase text-[#565f89] font-bold block tracking-wider">
+                <span className="text-[10px] uppercase text-tokyo-comment font-bold block tracking-wider">
                     Otros personajes vinculados a este mismo usuario
                 </span>
                 <button
                     onClick={onOpenLinkModal}
-                    className="text-[9px] bg-[#bb9af7]/10 hover:bg-[#bb9af7]/20 border border-[#bb9af7]/40 hover:border-[#bb9af7] text-[#bb9af7] font-bold px-2 py-1 rounded transition-all uppercase tracking-tight cursor-pointer"
+                    className="text-[9px] bg-tokyo-purple/10 hover:bg-tokyo-purple/20 border border-tokyo-purple/40 hover:border-tokyo-purple text-tokyo-purple font-bold px-2 py-1 rounded transition-all uppercase tracking-tight cursor-pointer"
                 >
                     + Vincular Alter
                 </button>
@@ -53,7 +53,7 @@ export default function ListaAltersVinculados({ profile, onOpenLinkModal }) {
                         );
                     })
                 ) : (
-                    <p className="text-xs text-[#565f89] italic bg-[#1f2335]/10 w-full p-2.5 rounded border border-[#414868]/20">
+                    <p className="text-xs text-tokyo-comment italic bg-[#1f2335]/10 w-full p-2.5 rounded border border-tokyo-border/20">
                         [ No se detectaron otros alters asignados a esta cuenta ]
                     </p>
                 )}

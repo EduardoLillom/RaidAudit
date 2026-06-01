@@ -171,16 +171,16 @@ export default function GuildsTab() {
         <div className="flex-1 flex min-h-0 flex-col gap-2 overflow-hidden relative">
 
             {/* ── BARRA COMPACTA SIEMPRE VISIBLE ─────────────────────── */}
-            <div className="flex-shrink-0 rounded-xl border border-[#414868] bg-[#1a1b26]/80 px-4 py-2 shadow-lg">
+            <div className="flex-shrink-0 rounded-xl border border-tokyo-border bg-tokyo-main/80 px-4 py-2 shadow-lg">
                 <div className="flex items-center gap-3 flex-wrap">
                     {/* Título + conteo */}
                     <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#41a6b5]">
+                        <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-tokyo-cyan">
                             // Historial
                         </span>
-                        <span className="inline-flex items-center gap-1 rounded-full border border-[#414868] bg-[#11131d]/80 px-2.5 py-0.5 text-xs">
+                        <span className="inline-flex items-center gap-1 rounded-full border border-tokyo-border bg-[#11131d]/80 px-2.5 py-0.5 text-xs">
                             <span className="font-bold text-[#9ece6a]">{filteredSessions.length}</span>
-                            <span className="text-[#565f89]">/ {sessions.length} raids</span>
+                            <span className="text-tokyo-comment">/ {sessions.length} raids</span>
                         </span>
                     </div>
 
@@ -192,7 +192,7 @@ export default function GuildsTab() {
                             activeFilters.map((f) => (
                                 <span
                                     key={f}
-                                    className="inline-flex items-center rounded-full border border-[#41a6b5]/30 bg-[#41a6b5]/10 px-2 py-0.5 text-[9px] font-semibold text-[#9ce4ff]"
+                                    className="inline-flex items-center rounded-full border border-tokyo-cyan/30 bg-[#41a6b5]/10 px-2 py-0.5 text-[9px] font-semibold text-[#9ce4ff]"
                                 >
                                     {f}
                                 </span>
@@ -216,8 +216,8 @@ export default function GuildsTab() {
                             onClick={() => setShowFiltersPanel((v) => !v)}
                             className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-wide transition cursor-pointer ${
                                 showFiltersPanel
-                                    ? 'border-[#bb9af7]/60 bg-[#bb9af7]/15 text-[#bb9af7]'
-                                    : 'border-[#414868] bg-[#11131d] text-[#a9b1d6] hover:border-[#bb9af7]/50 hover:text-[#bb9af7]'
+                                    ? 'border-tokyo-purple/60 bg-tokyo-purple/15 text-tokyo-purple'
+                                    : 'border-tokyo-border bg-[#11131d] text-slate-300 hover:border-tokyo-purple/50 hover:text-tokyo-purple'
                             }`}
                         >
                             <span>{showFiltersPanel ? '▲' : '▼'}</span>
@@ -229,13 +229,13 @@ export default function GuildsTab() {
 
             {/* ── PANEL DESPLEGABLE DE FILTROS ───────────────────────── */}
             {showFiltersPanel && (
-                <div className="flex-shrink-0 rounded-xl border border-[#414868]/70 bg-[#1a1b26]/60 p-3">
+                <div className="flex-shrink-0 rounded-xl border border-tokyo-border/70 bg-tokyo-main/60 p-3">
                     <div className="grid grid-cols-1 xl:grid-cols-[1fr,0.65fr] gap-3">
                         {/* Filtros avanzados */}
                         <div className="rounded-xl border border-[#2a3145] bg-gradient-to-br from-[#161a27] via-[#1a1f31] to-[#222a3f] p-3">
-                            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#41a6b5] mb-3">Filtros avanzados</p>
+                            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-tokyo-cyan mb-3">Filtros avanzados</p>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                <label className="flex flex-col gap-1 text-[9px] font-bold uppercase tracking-[0.12em] text-[#565f89]">
+                                <label className="flex flex-col gap-1 text-[9px] font-bold uppercase tracking-[0.12em] text-tokyo-comment">
                                     <span>Guild</span>
                                     <select
                                         value={selectedGuild}
@@ -249,7 +249,7 @@ export default function GuildsTab() {
                                     </select>
                                 </label>
 
-                                <label className="flex flex-col gap-1 text-[9px] font-bold uppercase tracking-[0.12em] text-[#565f89]">
+                                <label className="flex flex-col gap-1 text-[9px] font-bold uppercase tracking-[0.12em] text-tokyo-comment">
                                     <span>Tipo de Raid</span>
                                     <select
                                         value={raidType}
@@ -266,27 +266,27 @@ export default function GuildsTab() {
                                     </select>
                                 </label>
 
-                                <label className="flex flex-col gap-1 text-[9px] font-bold uppercase tracking-[0.12em] text-[#565f89]">
+                                <label className="flex flex-col gap-1 text-[9px] font-bold uppercase tracking-[0.12em] text-tokyo-comment">
                                     <span>Desde</span>
                                     <input
                                         type="date"
                                         value={dateFrom}
                                         onChange={(e) => setDateFrom(e.target.value)}
-                                        className="rounded-lg border border-[#313b54] bg-[#1a1f31] px-2 py-1.5 text-xs text-[#e8eeff] outline-none transition focus:border-[#41a6b5]"
+                                        className="rounded-lg border border-[#313b54] bg-[#1a1f31] px-2 py-1.5 text-xs text-[#e8eeff] outline-none transition focus:border-tokyo-cyan"
                                     />
                                 </label>
 
-                                <label className="flex flex-col gap-1 text-[9px] font-bold uppercase tracking-[0.12em] text-[#565f89]">
+                                <label className="flex flex-col gap-1 text-[9px] font-bold uppercase tracking-[0.12em] text-tokyo-comment">
                                     <span>Hasta</span>
                                     <input
                                         type="date"
                                         value={dateTo}
                                         onChange={(e) => setDateTo(e.target.value)}
-                                        className="rounded-lg border border-[#313b54] bg-[#1a1f31] px-2 py-1.5 text-xs text-[#e8eeff] outline-none transition focus:border-[#41a6b5]"
+                                        className="rounded-lg border border-[#313b54] bg-[#1a1f31] px-2 py-1.5 text-xs text-[#e8eeff] outline-none transition focus:border-tokyo-cyan"
                                     />
                                 </label>
 
-                                <label className="flex flex-col gap-1 text-[9px] font-bold uppercase tracking-[0.12em] text-[#565f89]">
+                                <label className="flex flex-col gap-1 text-[9px] font-bold uppercase tracking-[0.12em] text-tokyo-comment">
                                     <span>Dur. mín. (min)</span>
                                     <input
                                         type="number"
@@ -298,7 +298,7 @@ export default function GuildsTab() {
                                     />
                                 </label>
 
-                                <label className="flex flex-col gap-1 text-[9px] font-bold uppercase tracking-[0.12em] text-[#565f89]">
+                                <label className="flex flex-col gap-1 text-[9px] font-bold uppercase tracking-[0.12em] text-tokyo-comment">
                                     <span>Dur. máx. (min)</span>
                                     <input
                                         type="number"
@@ -314,8 +314,8 @@ export default function GuildsTab() {
 
                         {/* Agregar Guild */}
                         <div className="rounded-xl border border-[#2a3145] bg-gradient-to-br from-[#151924] via-[#1b2030] to-[#232b43] p-3">
-                            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#41a6b5] mb-1">Nueva guild</p>
-                            <p className="text-[10px] text-[#565f89] mb-3">Añade una hermandad para raids futuros.</p>
+                            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-tokyo-cyan mb-1">Nueva guild</p>
+                            <p className="text-[10px] text-tokyo-comment mb-3">Añade una hermandad para raids futuros.</p>
                             <form onSubmit={handleCreateGuild} className="flex flex-col gap-2">
                                 <input
                                     type="text"
@@ -347,11 +347,11 @@ export default function GuildsTab() {
             )}
 
             {/* ── TABLA DE RESULTADOS ─────────────────────────────────── */}
-            <div className="flex-1 min-h-0 overflow-hidden rounded-xl border border-[#414868] bg-[#1a1b26]/60">
+            <div className="flex-1 min-h-0 overflow-hidden rounded-xl border border-tokyo-border bg-tokyo-main/60">
                 <div className="h-full overflow-y-auto">
                     <table className="w-full text-left text-xs border-collapse">
-                        <thead className="sticky top-0 z-10 bg-[#1a1b26]">
-                            <tr className="border-b border-[#414868] text-[#565f89] uppercase tracking-wider text-[9px]">
+                        <thead className="sticky top-0 z-10 bg-tokyo-main">
+                            <tr className="border-b border-tokyo-border text-tokyo-comment uppercase tracking-wider text-[9px]">
                                 <th className="py-2.5 font-bold pl-4 pr-2">ID</th>
                                 <th className="py-2.5 font-bold pr-2">Guild</th>
                                 <th className="py-2.5 font-bold pr-2">Instancia</th>
@@ -366,13 +366,13 @@ export default function GuildsTab() {
                         <tbody className="divide-y divide-[#414868]/20">
                             {isLoading ? (
                                 <tr>
-                                    <td colSpan="9" className="py-20 text-center text-[#565f89] text-xs">
+                                    <td colSpan="9" className="py-20 text-center text-tokyo-comment text-xs">
                                         Cargando historial...
                                     </td>
                                 </tr>
                             ) : filteredSessions.length === 0 ? (
                                 <tr>
-                                    <td colSpan="9" className="py-20 text-center text-[#565f89] text-xs">
+                                    <td colSpan="9" className="py-20 text-center text-tokyo-comment text-xs">
                                         No hay raids que coincidan con los filtros actuales.
                                     </td>
                                 </tr>
@@ -383,19 +383,19 @@ export default function GuildsTab() {
                                         onClick={() => handleRowClick(session)}
                                         className="hover:bg-[#1f2335]/70 transition-colors cursor-pointer group"
                                     >
-                                        <td className="py-2.5 pl-4 pr-2 font-bold text-[#41a6b5] font-mono text-[10px] group-hover:text-[#7aa2f7]">
+                                        <td className="py-2.5 pl-4 pr-2 font-bold text-tokyo-cyan font-mono text-[10px] group-hover:text-[#7aa2f7]">
                                             #{session.id}
                                         </td>
-                                        <td className="py-2.5 pr-2 text-[#a9b1d6]">{session.guild_name || '--'}</td>
+                                        <td className="py-2.5 pr-2 text-slate-300">{session.guild_name || '--'}</td>
                                         <td className="py-2.5 pr-2">
-                                            <span className="inline-flex items-center rounded border border-[#bb9af7]/30 bg-[#bb9af7]/10 px-1.5 py-0.5 text-[9px] font-bold uppercase text-[#bb9af7]">
+                                            <span className="inline-flex items-center rounded border border-tokyo-purple/30 bg-tokyo-purple/10 px-1.5 py-0.5 text-[9px] font-bold uppercase text-tokyo-purple">
                                                 {session.instance || '--'}
                                             </span>
                                         </td>
-                                        <td className="py-2.5 pr-2 text-[#a9b1d6] font-mono text-[10px]">{String(session.date || '--').slice(0, 10)}</td>
-                                        <td className="py-2.5 pr-2 text-[#565f89] text-[10px] max-w-[140px] truncate" title={session.notes}>{session.notes || '--'}</td>
-                                        <td className="py-2.5 pr-2 text-[#a9b1d6] font-mono text-[10px]">{session.start_time || '--:--'}</td>
-                                        <td className="py-2.5 pr-2 text-[#a9b1d6] font-mono text-[10px]">{session.end_time || '--:--'}</td>
+                                        <td className="py-2.5 pr-2 text-slate-300 font-mono text-[10px]">{String(session.date || '--').slice(0, 10)}</td>
+                                        <td className="py-2.5 pr-2 text-tokyo-comment text-[10px] max-w-[140px] truncate" title={session.notes}>{session.notes || '--'}</td>
+                                        <td className="py-2.5 pr-2 text-slate-300 font-mono text-[10px]">{session.start_time || '--:--'}</td>
+                                        <td className="py-2.5 pr-2 text-slate-300 font-mono text-[10px]">{session.end_time || '--:--'}</td>
                                         <td className="py-2.5 pr-2 text-[#9ece6a] font-bold font-mono text-[10px]">{calculateDuration(session.start_time, session.end_time)}</td>
                                         <td className="py-2.5 pr-4">
                                             <span className={`inline-flex rounded-full px-2 py-0.5 text-[9px] font-bold uppercase ${getStatusStyles(session.status)}`}>
@@ -413,19 +413,19 @@ export default function GuildsTab() {
             {/* ── MODAL INYECTADO: DETALLES DEL ROSTER DE LA RAID ───────── */}
             {selectedSessionDetails && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#111216]/80 backdrop-blur-sm p-4">
-                    <div className="w-full max-w-6xl rounded-2xl border border-[#414868] bg-[#1a1b26] shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                    <div className="w-full max-w-6xl rounded-2xl border border-tokyo-border bg-tokyo-main shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
                         
                         {/* Header del Modal */}
-                        <div className="flex items-center justify-between border-b border-[#414868] bg-[#11131d] px-6 py-4">
+                        <div className="flex items-center justify-between border-b border-tokyo-border bg-[#11131d] px-6 py-4">
                             <div className="flex items-center gap-3">
-                                <span className="rounded border border-[#bb9af7]/40 bg-[#bb9af7]/10 px-2 py-0.5 text-xs font-bold uppercase text-[#bb9af7]">
+                                <span className="rounded border border-tokyo-purple/40 bg-tokyo-purple/10 px-2 py-0.5 text-xs font-bold uppercase text-tokyo-purple">
                                     {selectedSessionDetails.instance || 'Raid'}
                                 </span>
                                 <div>
                                     <h3 className="text-sm font-bold text-[#e8eeff]">
                                         Roster del Historial — {selectedSessionDetails.guild_name || 'Sin Guild'}
                                     </h3>
-                                    <p className="text-[11px] text-[#565f89] font-mono mt-0.5">
+                                    <p className="text-[11px] text-tokyo-comment font-mono mt-0.5">
                                         ID: #{selectedSessionDetails.id} | Fecha: {String(selectedSessionDetails.date || '').slice(0, 10)} | Duración: {calculateDuration(selectedSessionDetails.start_time, selectedSessionDetails.end_time)}
                                     </p>
                                 </div>
@@ -433,7 +433,7 @@ export default function GuildsTab() {
                             <button
                                 type="button"
                                 onClick={handleCloseModal}
-                                className="rounded-lg border border-[#414868] bg-[#1a1b26] p-1.5 text-xs text-[#a9b1d6] hover:text-[#f7768e] hover:border-[#f7768e]/40 transition cursor-pointer"
+                                className="rounded-lg border border-tokyo-border bg-tokyo-main p-1.5 text-xs text-slate-300 hover:text-[#f7768e] hover:border-[#f7768e]/40 transition cursor-pointer"
                             >
                                 ✕ Cerrar
                             </button>
@@ -442,7 +442,7 @@ export default function GuildsTab() {
                         {/* Cuerpo del Modal */}
                         <div className="flex-1 overflow-y-auto p-6 bg-gradient-to-b from-[#1a1b26] to-[#161722]">
                             {isLoadingModal ? (
-                                <div className="py-32 text-center text-[#565f89] text-xs font-mono uppercase tracking-widest animate-pulse">
+                                <div className="py-32 text-center text-tokyo-comment text-xs font-mono uppercase tracking-widest animate-pulse">
                                     [ Cargando Roster desde la Base de Datos... ]
                                 </div>
                             ) : (

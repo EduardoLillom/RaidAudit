@@ -91,11 +91,11 @@ export default function QuickReplaceModal({ target, sessionId, currentRoster = [
     const isSubmitDisabled = mode === 'REPLACE' && !name.trim();
 
     return (
-        <div className="fixed inset-0 bg-[#16161e]/80 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn font-mono">
-            <div className="bg-[#1a1b26] border border-[#bb9af7] rounded-xl p-5 w-[380px] shadow-2xl flex flex-col gap-4 relative">
+        <div className="fixed inset-0 bg-tokyo-dark/80 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn font-mono">
+            <div className="bg-tokyo-main border border-tokyo-purple rounded-xl p-5 w-95 shadow-2xl flex flex-col gap-4 relative">
                 
                 <div>
-                    <div className="text-[10px] uppercase text-[#bb9af7] font-bold tracking-widest">// RE relevo_en_vivo</div>
+                    <div className="text-[10px] uppercase text-tokyo-purple font-bold tracking-widest">// RE relevo_en_vivo</div>
                     <h3 className="text-sm font-bold text-white mt-1">
                         Gestionar Slot: <span className="text-[#ff9e64]">{target.nameOut}</span>
                     </h3>
@@ -103,13 +103,13 @@ export default function QuickReplaceModal({ target, sessionId, currentRoster = [
 
                 {/* SELECTOR DE ACCIÓN (Pestañas) */}
                 {target.raiderOutId && (
-                    <div className="flex bg-[#24283b] p-1 rounded-lg border border-[#414868]/40">
+                    <div className="flex bg-tokyo-panel p-1 rounded-lg border border-tokyo-border/40">
                         <button
                             type="button"
                             onClick={() => setMode('REPLACE')}
                             className={`flex-1 py-1.5 text-xs font-bold rounded transition-all ${
                                 mode === 'REPLACE' 
-                                    ? 'bg-[#bb9af7] text-[#1a1b26]' 
+                                    ? 'bg-tokyo-purple text-tokyo-main' 
                                     : 'text-gray-400 hover:text-white'
                             }`}
                         >
@@ -136,7 +136,7 @@ export default function QuickReplaceModal({ target, sessionId, currentRoster = [
                         <>
                             {/* INPUT CON BUSCADOR EN TIEMPO REAL */}
                             <div className="flex flex-col gap-1.5 relative">
-                                <label className="text-[9px] uppercase text-[#565f89] font-bold">Nombre del Entrante</label>
+                                <label className="text-[9px] uppercase text-tokyo-comment font-bold">Nombre del Entrante</label>
                                 <input 
                                     type="text"
                                     autoFocus
@@ -146,17 +146,17 @@ export default function QuickReplaceModal({ target, sessionId, currentRoster = [
                                         setName(e.target.value);
                                         if (selectedRaiderData) setSelectedRaiderData(null);
                                     }}
-                                    className="bg-[#24283b] border border-[#414868] text-sm text-white p-2.5 rounded-lg outline-none focus:border-[#bb9af7] transition-all w-full"
+                                    className="bg-tokyo-panel border border-tokyo-border text-sm text-white p-2.5 rounded-lg outline-none focus:border-tokyo-purple transition-all w-full"
                                 />
 
                                 {/* LISTA DESPLEGABLE */}
                                 {showDropdown && searchResults.length > 0 && (
-                                    <ul className="absolute top-[62px] left-0 w-full bg-[#1f2335] border border-[#414868] rounded-lg shadow-2xl max-h-[160px] overflow-y-auto z-50 divide-y divide-[#24283b]">
+                                    <ul className="absolute top-15.5 left-0 w-full bg-[#1f2335] border border-tokyo-border rounded-lg shadow-2xl max-h-40 overflow-y-auto z-50 divide-y divide-tokyo-panel">
                                         {searchResults.map((r) => (
                                             <li
                                                 key={r.raider_id}
                                                 onClick={() => handleSelectResult(r)}
-                                                className="px-3 py-2 hover:bg-[#2e3440] cursor-pointer flex justify-between items-center text-xs text-[#a9b1d6] transition-colors"
+                                                className="px-3 py-2 hover:bg-[#2e3440] cursor-pointer flex justify-between items-center text-xs text-slate-300 transition-colors"
                                             >
                                                 <span className="font-bold text-white">{r.nickname}</span>
                                                 <span className="text-[10px] text-[#7aa2f7] bg-[#3d59a1]/30 px-1.5 py-0.5 rounded">
@@ -170,8 +170,8 @@ export default function QuickReplaceModal({ target, sessionId, currentRoster = [
 
                             {/* SELECTOR DE CLASE */}
                             {!selectedRaiderData && name.trim() !== '' && (
-                                <div className="flex flex-col gap-1.5 border border-[#343b58] p-2.5 rounded-lg bg-[#24283b]/20 animate-fadeIn">
-                                    <div className="text-[9px] text-[#e0af68] font-bold uppercase mb-1">
+                                <div className="flex flex-col gap-1.5 border border-[#343b58] p-2.5 rounded-lg bg-tokyo-panel/20 animate-fadeIn">
+                                    <div className="text-[9px] text-tokyo-orange font-bold uppercase mb-1">
                                         ⚠️ Personaje nuevo detectado. Elige su clase:
                                     </div>
                                     <div className="grid grid-cols-2 gap-1.5">
@@ -183,7 +183,7 @@ export default function QuickReplaceModal({ target, sessionId, currentRoster = [
                                                     type="button"
                                                     onClick={() => setSelectedClass(cls.id)}
                                                     style={{ borderColor: isSelected ? cls.color : '#414868' }}
-                                                    className="p-2 rounded text-left text-xs font-bold transition-all flex items-center gap-2 border bg-[#24283b]/50"
+                                                    className="p-2 rounded text-left text-xs font-bold transition-all flex items-center gap-2 border bg-tokyo-panel/50"
                                                 >
                                                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: cls.color }} />
                                                     <span style={{ color: isSelected ? cls.color : '#a9b1d6' }}>{cls.label}</span>
@@ -203,30 +203,30 @@ export default function QuickReplaceModal({ target, sessionId, currentRoster = [
                         </>
                     ) : (
                         /* VISTA MODO REMOVE */
-                        <div className="p-3 rounded-lg border border-[#f7768e]/30 bg-[#f7768e]/5 text-xs text-[#e0af68] font-medium animate-fadeIn leading-relaxed">
+                        <div className="p-3 rounded-lg border border-[#f7768e]/30 bg-[#f7768e]/5 text-xs text-tokyo-orange font-medium animate-fadeIn leading-relaxed">
                             ⚠️ El slot pasará a estar <span className="text-white font-bold">[ VACÍO ]</span>. El jugador de este casillero será removido del roster activo.
                         </div>
                     )}
 
                     {/* CAMPO DE NOTAS ADAPTATIVO */}
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-[9px] uppercase text-[#565f89] font-bold">
+                        <label className="text-[9px] uppercase text-tokyo-comment font-bold">
                             {mode === 'REPLACE' ? 'Nota del reemplazo (opcional)' : 'Razón del retiro / Observación'}
                         </label>
                         <textarea
                             value={note}
                             onChange={(e) => setNote(e.target.value)}
                             placeholder={mode === 'REPLACE' ? "Ej: baja el tanque, cambia de grupo" : "Ej: Desconectado, bajo rendimiento, se tuvo que ir"}
-                            className="bg-[#24283b] border border-[#414868] text-sm text-white p-2.5 rounded-lg outline-none focus:border-[#bb9af7] transition-all w-full min-h-[80px] resize-none"
+                            className="bg-tokyo-panel border border-tokyo-border text-sm text-white p-2.5 rounded-lg outline-none focus:border-tokyo-purple transition-all w-full min-h-20 resize-none"
                         />
                     </div>
 
                     {/* BOTONES DE CONTROL DE CIERRE */}
-                    <div className="flex gap-2 mt-2 pt-2 border-t border-[#414868]/40">
+                    <div className="flex gap-2 mt-2 pt-2 border-t border-tokyo-border/40">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 bg-[#24283b] text-gray-400 hover:text-white py-2 rounded-lg text-xs font-bold transition-all"
+                            className="flex-1 bg-tokyo-panel text-gray-400 hover:text-white py-2 rounded-lg text-xs font-bold transition-all"
                         >
                             CANCELAR
                         </button>
@@ -237,7 +237,7 @@ export default function QuickReplaceModal({ target, sessionId, currentRoster = [
                             style={{
                                 backgroundColor: mode === 'REPLACE' ? '#bb9af7' : '#f7768e'
                             }}
-                            className="flex-1 disabled:opacity-40 text-[#1a1b26] disabled:text-[#1a1b26] py-2 rounded-lg text-xs font-black transition-all uppercase"
+                            className="flex-1 disabled:opacity-40 text-tokyo-main disabled:text-tokyo-main py-2 rounded-lg text-xs font-black transition-all uppercase"
                         >
                             {mode === 'REMOVE' 
                                 ? 'RETIRAR JUGADOR' 

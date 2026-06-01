@@ -32,7 +32,7 @@ export default function App() {
 
     const tabs = [
         { id: 'matriz', label: '[01] Analizador Raid', color: 'bg-[#41a6b5]' },
-        { id: 'jugadores', label: '[02] Expedientes', color: 'bg-[#bb9af7]' },
+        { id: 'jugadores', label: '[02] Expedientes', color: 'bg-tokyo-purple' },
         { id: 'guilds', label: '[03] Archivo Guilds', color: 'bg-[#41a6b5]' },
         { id: 'gestion', label: '[04] Importación & Gestión', color: 'bg-[#9ece6a]' },
         { id: 'more options', label: '[05] Más opciones', color: 'bg-[#f7768e]' }
@@ -45,7 +45,7 @@ export default function App() {
     };
 
     return (
-        <div className="h-screen flex flex-col overflow-hidden select-none bg-[#1a1b26]">
+        <div className="h-screen flex flex-col overflow-hidden select-none bg-tokyo-main">
             {error && (
                 <div className="bg-red-900 border border-red-700 p-4 m-4 rounded text-red-100">
                     <p className="font-bold">Error de inicialización:</p>
@@ -55,7 +55,7 @@ export default function App() {
             <Header tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />
             
             <div className="flex-1 p-6 overflow-hidden">
-                <div className="w-full h-full bg-[#24283b] rounded-xl border border-[#414868] p-5 flex flex-col overflow-hidden shadow-2xl">
+                <div className="w-full h-full bg-tokyo-panel rounded-xl border border-tokyo-border p-5 flex flex-col overflow-hidden shadow-2xl">
                     {activeTab === 'matriz' && <MatrizTab onSelectRaider={handleSelectRaider} />}
                     {activeTab === 'jugadores' && (
                         <JugadoresTab

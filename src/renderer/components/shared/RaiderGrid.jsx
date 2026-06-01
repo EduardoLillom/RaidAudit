@@ -51,8 +51,8 @@ export default function RaiderGrid({
 
     if (!activeSession && raiders.length === 0) {
         return (
-            <div className="flex-1 min-h-[400px] flex items-center justify-center border border-dashed border-[#414868]/30 rounded-lg bg-[#1a1b26]/40 m-1">
-                <div className="text-sm text-[#565f89] font-mono uppercase tracking-widest animate-pulse">[ Esperando volcado JSON ]</div>
+            <div className="flex-1 min-h-100 flex items-center justify-center border border-dashed border-tokyo-border/30 rounded-lg bg-tokyo-main/40 m-1">
+                <div className="text-sm text-tokyo-comment font-mono uppercase tracking-widest animate-pulse">[ Esperando volcado JSON ]</div>
             </div>
         );
     }
@@ -94,13 +94,13 @@ export default function RaiderGrid({
                         ) : (
                             <div
                                 onClick={() => activeSession && setReplaceTarget({ slotIndex: index, raiderOutId: null, nameOut: 'Slot Vacío' })}
-                                className={`rounded border border-dashed border-[#24283b] flex flex-col items-center justify-center bg-[#1f2335]/20 h-full min-h-[85px] transition-all duration-200 ${
+                                className={`rounded border border-dashed border-tokyo-panel flex flex-col items-center justify-center bg-[#1f2335]/20 h-full min-h-21.25 transition-all duration-200 ${
                                     activeSession
                                         ? 'hover:bg-[#9ece6a]/5 hover:border-[#9ece6a] opacity-60 hover:opacity-100 cursor-pointer'
                                         : 'opacity-40'
                                 }`}
                             >
-                                <span className="text-[10px] font-mono text-[#565f89]">G{Math.floor(index / 5) + 1}</span>
+                                <span className="text-[10px] font-mono text-tokyo-comment">G{Math.floor(index / 5) + 1}</span>
                                 {activeSession && (
                                     <span className="text-[9px] text-[#9ece6a] mt-1 font-mono font-bold tracking-wider animate-pulse">
                                         [ + LIBRE ]

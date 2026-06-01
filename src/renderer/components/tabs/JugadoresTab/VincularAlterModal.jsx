@@ -14,10 +14,10 @@ export default function VincularAlterModal({
 
     return (
         <div className="absolute inset-0 bg-[#15161e]/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
-            <div className="bg-[#1f2335] border border-[#414868] w-full max-w-md rounded-xl p-5 shadow-2xl flex flex-col gap-4">
+            <div className="bg-[#1f2335] border border-tokyo-border w-full max-w-md rounded-xl p-5 shadow-2xl flex flex-col gap-4">
                 
-                <div className="flex justify-between items-center border-b border-[#414868]/40 pb-2">
-                    <h4 className="text-xs font-bold text-[#bb9af7] uppercase tracking-wider">
+                <div className="flex justify-between items-center border-b border-tokyo-border/40 pb-2">
+                    <h4 className="text-xs font-bold text-tokyo-purple uppercase tracking-wider">
                         Vincular Alter a {selectedRaider?.nickname}
                     </h4>
                     <button 
@@ -29,7 +29,7 @@ export default function VincularAlterModal({
                 </div>
 
                 <div>
-                    <label className="text-[10px] uppercase text-[#565f89] block mb-1 font-bold">
+                    <label className="text-[10px] uppercase text-tokyo-comment block mb-1 font-bold">
                         Buscar el Alter en la Base de Datos
                     </label>
                     <input 
@@ -37,7 +37,7 @@ export default function VincularAlterModal({
                         placeholder="Escribe el nombre del alter..."
                         value={alterSearchTerm}
                         onChange={(e) => setAlterSearchTerm(e.target.value)}
-                        className="w-full bg-[#1a1b26] border border-[#414868] rounded px-3 py-2 text-xs text-[#a9b1d6] placeholder-[#565f89] focus:outline-none focus:border-[#bb9af7]"
+                        className="w-full bg-tokyo-main border border-tokyo-border rounded px-3 py-2 text-xs text-slate-300 placeholder-tokyo-comment focus:outline-none focus:border-tokyo-purple"
                         autoFocus
                     />
                 </div>
@@ -50,11 +50,11 @@ export default function VincularAlterModal({
                         alterResults.map(alt => (
                             <div 
                                 key={alt.raider_id || alt.id}
-                                className="bg-[#1a1b26]/60 border border-[#414868]/40 p-2.5 rounded flex justify-between items-center text-xs hover:border-[#9ece6a] transition-all"
+                                className="bg-tokyo-main/60 border border-tokyo-border/40 p-2.5 rounded flex justify-between items-center text-xs hover:border-[#9ece6a] transition-all"
                             >
                                 <div>
-                                    <span className="font-bold text-[#a9b1d6]">{alt.nickname}</span>
-                                    <span className="text-[9px] text-[#565f89] block">
+                                    <span className="font-bold text-slate-300">{alt.nickname}</span>
+                                    <span className="text-[9px] text-tokyo-comment block">
                                         {Number(alt.id) === 0 ? "⚠️ PUG (Sin dueño)" : `Dueño: ${alt.owner_name}`}
                                     </span>
                                 </div>
@@ -67,11 +67,11 @@ export default function VincularAlterModal({
                             </div>
                         ))
                     ) : alterSearchTerm.trim() !== '' ? (
-                        <div className="text-[11px] text-[#565f89] italic text-center py-4">
+                        <div className="text-[11px] text-tokyo-comment italic text-center py-4">
                             No se encontraron personajes para vincular.
                         </div>
                     ) : (
-                        <div className="text-[10px] text-[#565f89] italic text-center py-4 px-4 bg-[#1a1b26]/20 rounded border border-[#414868]/10">
+                        <div className="text-[10px] text-tokyo-comment italic text-center py-4 px-4 bg-tokyo-main/20 rounded border border-tokyo-border/10">
                             Escribe el nombre del alter arriba para desplegar opciones disponibles.
                         </div>
                     )}

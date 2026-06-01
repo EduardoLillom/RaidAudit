@@ -291,8 +291,8 @@ export default function MatrizTab({ onSelectRaider }) {
     return (
         <div className="flex-1 flex overflow-hidden gap-6">
             <div className="w-[30%] flex flex-col gap-4">
-                <div className="bg-[#1a1b26] p-4 rounded-xl border border-[#414868] flex flex-col flex-1 gap-3 overflow-hidden">
-                    <span className="text-[10px] font-bold text-[#41a6b5] uppercase tracking-wider">// CONFIG_SESION</span>
+                <div className="bg-tokyo-main p-4 rounded-xl border border-tokyo-border flex flex-col flex-1 gap-3 overflow-hidden">
+                    <span className="text-[10px] font-bold text-tokyo-cyan uppercase tracking-wider">// CONFIG_SESION</span>
 
                     {!activeSession ? (
                         <SessionConfigForm
@@ -323,9 +323,9 @@ export default function MatrizTab({ onSelectRaider }) {
 
             <div className="flex-1 flex flex-col overflow-hidden gap-4">
                 <div className="flex-1 flex flex-col overflow-hidden">
-                    <div className="flex justify-between items-center border-b border-[#414868] pb-2 mb-3">
-                        <h2 className="text-xs font-bold uppercase tracking-wider text-[#bb9af7]">MATRIZ RELACIONAL ACTIVA (GRUPOS 1 - 5)</h2>
-                        <div className="text-[10px] text-[#565f89]">ESTADO: <span className="text-gray-500 italic">{status}</span></div>
+                    <div className="flex justify-between items-center border-b border-tokyo-border pb-2 mb-3">
+                        <h2 className="text-xs font-bold uppercase tracking-wider text-tokyo-purple">MATRIZ RELACIONAL ACTIVA (GRUPOS 1 - 5)</h2>
+                        <div className="text-[10px] text-tokyo-comment">ESTADO: <span className="text-gray-500 italic">{status}</span></div>
                     </div>
 
                     <RaiderGrid
@@ -354,13 +354,13 @@ export default function MatrizTab({ onSelectRaider }) {
                 </div>
 
                 {!activeSession && raiders.length > 0 && (
-                    <div className="h-[220px] flex flex-col border border-dashed border-[#414868]/50 bg-[#16161e]/40 rounded-xl p-3 overflow-hidden">
-                        <span className="text-[10px] font-bold text-[#e0af68] uppercase tracking-wider mb-2">
+                    <div className="h-55 flex flex-col border border-dashed border-tokyo-border/50 bg-tokyo-dark/40 rounded-xl p-3 overflow-hidden">
+                        <span className="text-[10px] font-bold text-tokyo-orange uppercase tracking-wider mb-2">
                             // POOL DE SETEO Y RESERVA ({raiders.filter(r => r.slot === null).length} JUGADORES)
                         </span>
 
                         <div
-                            className="flex-1 overflow-y-auto grid grid-cols-5 gap-2.5 p-1.5 bg-[#1a1b26]/60 rounded-lg border border-[#24283b]"
+                            className="flex-1 overflow-y-auto grid grid-cols-5 gap-2.5 p-1.5 bg-tokyo-main/60 rounded-lg border border-tokyo-panel"
                             onDragOver={(e) => e.preventDefault()}
                             onDrop={(e) => {
                                 e.preventDefault();

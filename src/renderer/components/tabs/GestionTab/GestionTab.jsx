@@ -100,29 +100,29 @@ export default function GestionTab() {
     }
 
     return (
-        <div className="flex-1 flex flex-col min-h-0 bg-[#1a1b26]/40 rounded-2xl border border-[#414868]/40 overflow-hidden text-[#a9b1d6]">
+        <div className="flex-1 flex flex-col min-h-0 bg-tokyo-main/40 rounded-2xl border border-tokyo-border/40 overflow-hidden text-slate-300">
             
             {/* SUB-MENÚ DE NAVEGACIÓN INTERNA */}
-            <div className="flex items-center bg-[#16161e] border-b border-[#414868]/50 px-4 h-12 flex-shrink-0 gap-2">
+            <div className="flex items-center bg-tokyo-dark border-b border-tokyo-border/50 px-4 h-12 flex-shrink-0 gap-2">
                 <button
                     onClick={() => setActiveSubTab('importar')}
                     className={`px-4 h-full text-xs font-bold tracking-wider uppercase transition-all relative ${
-                        activeSubTab === 'importar' ? 'text-[#bb9af7]' : 'text-[#565f89] hover:text-[#a9b1d6]'
+                        activeSubTab === 'importar' ? 'text-tokyo-purple' : 'text-tokyo-comment hover:text-slate-300'
                     }`}
                 >
                     📥 Importar Datos
                     {activeSubTab === 'importar' && (
-                        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#bb9af7]" />
+                        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-tokyo-purple" />
                     )}
                 </button>
                 <button
                     onClick={() => setActiveSubTab('guilds')}
                     className={`px-4 h-full text-xs font-bold tracking-wider uppercase transition-all relative flex items-center gap-2 ${
-                        activeSubTab === 'guilds' ? 'text-[#41a6b5]' : 'text-[#565f89] hover:text-[#a9b1d6]'
+                        activeSubTab === 'guilds' ? 'text-tokyo-cyan' : 'text-tokyo-comment hover:text-slate-300'
                     }`}
                 >
                     ⚙️ Control de Guilds
-                    <span className="bg-[#24283b] text-[#7aa2f7] px-1.5 py-0.5 rounded-md text-[9px] font-mono">{guilds.length}</span>
+                    <span className="bg-tokyo-panel text-[#7aa2f7] px-1.5 py-0.5 rounded-md text-[9px] font-mono">{guilds.length}</span>
                     {activeSubTab === 'guilds' && (
                         <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#41a6b5]" />
                     )}
@@ -137,11 +137,11 @@ export default function GestionTab() {
                     <div className="flex-1 flex flex-col gap-4 min-h-0 animate-fadeIn">
                         <div className="flex flex-col">
                             <h2 className="text-sm font-black text-white uppercase tracking-wider">Carga masiva a través de búfer JSON</h2>
-                            <p className="text-xs text-[#565f89] mt-0.5">El sistema mapeará automáticamente las cuentas maestras y los personajes incluidos.</p>
+                            <p className="text-xs text-tokyo-comment mt-0.5">El sistema mapeará automáticamente las cuentas maestras y los personajes incluidos.</p>
                         </div>
 
-                        <div className="flex-1 flex flex-col min-h-0 bg-[#1f2335]/50 border border-[#414868]/60 rounded-xl overflow-hidden focus-within:border-[#bb9af7]/60 transition-all">
-                            <div className="bg-[#16161e]/80 px-4 py-2 border-b border-[#414868]/40 flex justify-between text-[10px] font-mono text-[#565f89]">
+                        <div className="flex-1 flex flex-col min-h-0 bg-tokyo-panel/50 border border-tokyo-border/60 rounded-xl overflow-hidden focus-within:border-tokyo-purple/60 transition-all">
+                            <div className="bg-tokyo-dark/80 px-4 py-2 border-b border-tokyo-border/40 flex justify-between text-[10px] font-mono text-tokyo-comment">
                                 <span>BUFFER_INPUT</span>
                                 {isValidJson && <span className="text-[#9ece6a]">READY</span>}
                             </div>
@@ -149,7 +149,7 @@ export default function GestionTab() {
                                 value={jsonText}
                                 onChange={(e) => setJsonText(e.target.value)}
                                 placeholder='Ej: [ { "name": "Zelmar", "class": "Mage" } ]'
-                                className="flex-1 bg-transparent p-4 text-xs text-[#9ece6a] placeholder-[#565f89] focus:outline-none font-mono resize-none leading-relaxed"
+                                className="flex-1 bg-transparent p-4 text-xs text-[#9ece6a] placeholder-tokyo-comment focus:outline-none font-mono resize-none leading-relaxed"
                             />
                         </div>
 
@@ -188,15 +188,15 @@ export default function GestionTab() {
                         <div className="w-72 flex flex-col gap-4">
                             <div className="flex flex-col">
                                 <h2 className="text-sm font-black text-white uppercase tracking-wider">Nueva Conexión</h2>
-                                <p className="text-xs text-[#565f89] mt-0.5">Agrega un nodo de hermandad a la base de datos.</p>
+                                <p className="text-xs text-tokyo-comment mt-0.5">Agrega un nodo de hermandad a la base de datos.</p>
                             </div>
-                            <form onSubmit={handleCreateGuild} className="flex flex-col gap-2 bg-[#16161e] p-4 rounded-xl border border-[#414868]/40">
+                            <form onSubmit={handleCreateGuild} className="flex flex-col gap-2 bg-tokyo-dark p-4 rounded-xl border border-tokyo-border/40">
                                 <input
                                     type="text"
                                     value={newGuildName}
                                     onChange={(e) => setNewGuildName(e.target.value)}
                                     placeholder="Nombre de la Hermandad"
-                                    className="w-full rounded-lg border border-[#313b54] bg-[#1f2335] px-3 py-2 text-xs text-white outline-none focus:border-[#41a6b5] transition-all"
+                                    className="w-full rounded-lg border border-[#313b54] bg-[#1f2335] px-3 py-2 text-xs text-white outline-none focus:border-tokyo-cyan transition-all"
                                 />
                                 <button
                                     type="submit"
@@ -217,13 +217,13 @@ export default function GestionTab() {
 
                         {/* Listado en cuadrícula o filas a la derecha */}
                         <div className="flex-1 flex flex-col min-h-0">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-[#565f89] mb-2 font-mono">// NODOS_ACTIVOS</span>
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-tokyo-comment mb-2 font-mono">// NODOS_ACTIVOS</span>
                             
                             <div className="flex-1 overflow-y-auto grid grid-cols-2 gap-3 pr-2 content-start custom-scrollbar">
                                 {isLoadingGuilds ? (
-                                    <div className="col-span-2 text-center text-xs text-[#565f89] py-12 font-mono">Leyendo clúster de bases de datos...</div>
+                                    <div className="col-span-2 text-center text-xs text-tokyo-comment py-12 font-mono">Leyendo clúster de bases de datos...</div>
                                 ) : guilds.length === 0 ? (
-                                    <div className="col-span-2 text-center text-xs text-[#565f89] py-12 border border-dashed border-[#414868]/40 rounded-xl">No hay registros guardados.</div>
+                                    <div className="col-span-2 text-center text-xs text-tokyo-comment py-12 border border-dashed border-tokyo-border/40 rounded-xl">No hay registros guardados.</div>
                                 ) : (
                                     guilds.map((guild) => (
                                         <div
@@ -233,8 +233,8 @@ export default function GestionTab() {
                                             }`}
                                         >
                                             <div className="min-w-0">
-                                                <h4 className="text-xs font-bold text-[#e0af68] truncate">{guild.name}</h4>
-                                                <span className="text-[10px] font-mono text-[#565f89]">ID: #{guild.id}</span>
+                                                <h4 className="text-xs font-bold text-tokyo-orange truncate">{guild.name}</h4>
+                                                <span className="text-[10px] font-mono text-tokyo-comment">ID: #{guild.id}</span>
                                             </div>
                                             <button
                                                 onClick={() => toggleGuildStatus(guild)}

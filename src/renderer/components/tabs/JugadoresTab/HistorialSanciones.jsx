@@ -4,7 +4,7 @@ export default function HistorialSanciones({ profile, nickname, onOpenNotesModal
     return (
         <div>
             <div className="flex justify-between items-center mb-2">
-                <span className="text-[10px] uppercase text-[#565f89] font-bold block tracking-wider">
+                <span className="text-[10px] uppercase text-tokyo-comment font-bold block tracking-wider">
                     Historial de Sanciones de {nickname}
                 </span>
                 <button
@@ -26,7 +26,7 @@ export default function HistorialSanciones({ profile, nickname, onOpenNotesModal
                         />
                     ))
                 ) : (
-                    <p className="text-xs text-[#565f89] italic bg-[#1f2335]/20 p-3 rounded border border-[#414868]/20">
+                    <p className="text-xs text-tokyo-comment italic bg-[#1f2335]/20 p-3 rounded border border-tokyo-border/20">
                         [ Este personaje está completamente limpio de alertas ]
                     </p>
                 )}
@@ -59,7 +59,7 @@ function TarjetaNota({ nota, onEditNote, onDeleteNote }) {
 
     if (isEditing) {
         return (
-            <div className="bg-[#1a1b26] p-3 rounded border border-[#bb9af7] flex flex-col gap-2 animate-fadeIn font-mono">
+            <div className="bg-tokyo-main p-3 rounded border border-tokyo-purple flex flex-col gap-2 animate-fadeIn font-mono">
                 <div className="flex justify-between items-center">
                     <span className="text-[10px] text-[#7aa2f7]">Raid: {nota.instance || 'Nota General'}</span>
                     
@@ -72,9 +72,9 @@ function TarjetaNota({ nota, onEditNote, onDeleteNote }) {
                                 className={`px-1.5 py-0.5 rounded border transition-all ${
                                     severity === sev
                                         ? sev === 'HIGH' ? 'bg-[#f7768e]/20 border-[#f7768e] text-[#f7768e]' :
-                                          sev === 'MEDIUM' ? 'bg-[#e0af68]/20 border-[#e0af68] text-[#e0af68]' :
+                                          sev === 'MEDIUM' ? 'bg-tokyo-orange/20 border-tokyo-orange text-tokyo-orange' :
                                           'bg-[#7aa2f7]/20 border-[#7aa2f7] text-[#7aa2f7]'
-                                        : 'bg-transparent border-[#414868] text-gray-500 hover:text-gray-300'
+                                        : 'bg-transparent border-tokyo-border text-gray-500 hover:text-gray-300'
                                 }`}
                             >
                                 {sev}
@@ -87,7 +87,7 @@ function TarjetaNota({ nota, onEditNote, onDeleteNote }) {
                 <textarea
                     value={text}
                     onChange={(e) => setText(e.target.value)}
-                    className="w-full bg-[#1f2335] border border-[#414868] rounded p-1.5 text-xs text-gray-200 outline-none resize-none focus:border-[#7aa2f7]"
+                    className="w-full bg-[#1f2335] border border-tokyo-border rounded p-1.5 text-xs text-gray-200 outline-none resize-none focus:border-[#7aa2f7]"
                     rows="2"
                 />
 
@@ -102,7 +102,7 @@ function TarjetaNota({ nota, onEditNote, onDeleteNote }) {
 
     // --- MODO VISTA NORMAL ---
     return (
-        <div className="bg-[#1a1b26] p-3 rounded border border-[#414868] flex flex-col gap-1 relative group font-mono">
+        <div className="bg-tokyo-main p-3 rounded border border-tokyo-border flex flex-col gap-1 relative group font-mono">
             <div className="flex justify-between items-center text-xs">
                 <span className="text-[#7aa2f7] text-[10px]">
                     Raid: {nota.instance || 'Nota General'}
@@ -112,7 +112,7 @@ function TarjetaNota({ nota, onEditNote, onDeleteNote }) {
                     {/* Botones de acción contextuales del Staff */}
                     <button 
                         onClick={() => setIsEditing(true)}
-                        className="text-[9px] text-[#e0af68] opacity-60 hover:opacity-100 transition-opacity"
+                        className="text-[9px] text-tokyo-orange opacity-60 hover:opacity-100 transition-opacity"
                     >
                         [EDITAR]
                     </button>
@@ -125,7 +125,7 @@ function TarjetaNota({ nota, onEditNote, onDeleteNote }) {
 
                     <span className={`text-[9px] px-2 py-0.5 rounded border ml-1 ${
                         severidadLimpia === 'HIGH' ? 'bg-[#f7768e]/10 border-[#f7768e]/30 text-[#f7768e]' :
-                        severidadLimpia === 'MEDIUM' ? 'bg-[#e0af68]/10 border-[#e0af68]/30 text-[#e0af68]' :
+                        severidadLimpia === 'MEDIUM' ? 'bg-tokyo-orange/10 border-tokyo-orange/30 text-tokyo-orange' :
                         'bg-[#7aa2f7]/10 border-[#7aa2f7]/30 text-[#7aa2f7]'
                     }`}>
                         {severidadLimpia}
@@ -133,7 +133,7 @@ function TarjetaNota({ nota, onEditNote, onDeleteNote }) {
                 </div>
             </div>
             
-            <p className="text-xs text-gray-300 bg-[#1f2335]/40 p-2 rounded border border-[#414868]/30 mt-1 break-words">
+            <p className="text-xs text-gray-300 bg-[#1f2335]/40 p-2 rounded border border-tokyo-border/30 mt-1 break-words">
                 {nota.note_text}
             </p>
         </div>

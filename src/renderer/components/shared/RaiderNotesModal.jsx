@@ -26,10 +26,10 @@ export default function RaiderNotesModal({ raider, onClose, onSave }) {
 
     return (
         <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
-            <div className="bg-[#1a1b26] border-2 border-[#414868] rounded-lg shadow-2xl w-full max-w-md overflow-hidden font-mono text-sm text-gray-200">
+            <div className="bg-tokyo-main border-2 border-tokyo-border rounded-lg shadow-2xl w-full max-w-md overflow-hidden font-mono text-sm text-gray-200">
                 
                 {/* Cabecera del Modal */}
-                <div className="bg-[#1f2335] p-3 border-b border-[#24283b] flex justify-between items-center">
+                <div className="bg-[#1f2335] p-3 border-b border-tokyo-panel flex justify-between items-center">
                     <h3 className="font-bold tracking-wide">
                         REGISTRAR INCIDENTE: <span className="text-[#7dcfff] uppercase">{raider.name}</span>
                     </h3>
@@ -47,10 +47,10 @@ export default function RaiderNotesModal({ raider, onClose, onSave }) {
                     
                     {/* SECCIÓN DE SEVERIDAD (Tabs de selección rápida) */}
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-[11px] text-[#565f89] uppercase tracking-wider font-bold">
+                        <label className="text-[11px] text-tokyo-comment uppercase tracking-wider font-bold">
                             Nivel de Severidad (Severity):
                         </label>
-                        <div className="grid grid-cols-3 gap-2 bg-[#1f2335]/60 p-1 rounded border border-[#24283b]">
+                        <div className="grid grid-cols-3 gap-2 bg-[#1f2335]/60 p-1 rounded border border-tokyo-panel">
                             <button
                                 type="button"
                                 onClick={() => setSeverity('LOW')}
@@ -67,7 +67,7 @@ export default function RaiderNotesModal({ raider, onClose, onSave }) {
                                 onClick={() => setSeverity('MEDIUM')}
                                 className={`py-1.5 text-xs font-bold rounded transition-all ${
                                     severity === 'MEDIUM'
-                                        ? 'bg-[#e0af68]/20 text-[#e0af68] border border-[#e0af68]/40'
+                                        ? 'bg-tokyo-orange/20 text-tokyo-orange border border-tokyo-orange/40'
                                         : 'text-gray-400 hover:text-white border border-transparent'
                                 }`}
                             >
@@ -89,7 +89,7 @@ export default function RaiderNotesModal({ raider, onClose, onSave }) {
 
                     {/* CAJA DE TEXTO PARA LA NOTA */}
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-[11px] text-[#565f89] uppercase tracking-wider font-bold">
+                        <label className="text-[11px] text-tokyo-comment uppercase tracking-wider font-bold">
                             Descripción del Suceso / Motivo:
                         </label>
                         <textarea
@@ -97,25 +97,25 @@ export default function RaiderNotesModal({ raider, onClose, onSave }) {
                             onChange={(e) => setNoteText(e.target.value)}
                             placeholder="Ej: Falló la entrega de esporas / Ausente sin avisar en pull..."
                             rows="4"
-                            className="w-full bg-[#1f2335] border border-[#24283b] rounded p-2 text-xs text-gray-100 outline-none resize-none focus:border-[#414868] transition-colors placeholder:text-gray-600"
+                            className="w-full bg-[#1f2335] border border-tokyo-panel rounded p-2 text-xs text-gray-100 outline-none resize-none focus:border-tokyo-border transition-colors placeholder:text-gray-600"
                             autoFocus
                         />
                     </div>
                 </div>
 
                 {/* Pie del Modal / Acciones */}
-                <div className="bg-[#1f2335]/50 p-3 border-t border-[#24283b] flex justify-end gap-2 text-xs">
+                <div className="bg-tokyo-panel/50 p-3 border-t border-tokyo-panel flex justify-end gap-2 text-xs">
                     <button
                         onClick={onClose}
                         disabled={isSaving}
-                        className="px-3 py-1.5 rounded bg-[#24283b] text-gray-300 hover:bg-[#414868] transition-colors disabled:opacity-50"
+                        className="px-3 py-1.5 rounded bg-tokyo-panel text-gray-300 hover:bg-tokyo-border transition-colors disabled:opacity-50"
                     >
                         Cancelar
                     </button>
                     <button
                         onClick={handleConfirmSave}
                         disabled={isSaving}
-                        className="px-4 py-1.5 rounded bg-[#9ece6a] text-[#1a1b26] font-bold hover:bg-[#9ece6a]/80 disabled:opacity-50 transition-colors"
+                        className="px-4 py-1.5 rounded bg-[#9ece6a] text-tokyo-main font-bold hover:bg-[#9ece6a]/80 disabled:opacity-50 transition-colors"
                     >
                         {isSaving ? 'Guardando...' : 'Aplicar Sanción'}
                     </button>
