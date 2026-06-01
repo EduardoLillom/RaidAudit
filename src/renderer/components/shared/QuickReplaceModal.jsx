@@ -14,6 +14,9 @@ const CLASS_OPTIONS = [
 ];
 
 export default function QuickReplaceModal({ target, sessionId, currentRoster = [], onClose, onConfirm }) {
+    // 🔀 Modo del modal: 'REPLACE' (Sustituir) o 'REMOVE' (Quitar/Vaciar)
+    const [mode, setMode] = useState('REPLACE'); 
+    
     const [name, setName] = useState('');
     const [selectedClass, setSelectedClass] = useState('PALADIN');
     const [note, setNote] = useState('');
@@ -25,18 +28,16 @@ export default function QuickReplaceModal({ target, sessionId, currentRoster = [
 
     // Efecto de búsqueda reactiva con Debounce (300ms)
     useEffect(() => {
-        if (!name.trim()) {
+        if (mode !== 'REPLACE' || !name.trim()) {
             setSearchResults([]);
             setSelectedRaiderData(null);
             return;
         }
 
-        // Si el usuario escribió exactamente lo mismo que el raider seleccionado, no busques de nuevo
         if (selectedRaiderData && name === selectedRaiderData.nickname) return;
 
         const delayDebounce = setTimeout(async () => {
             if (window.apiDB?.searchPlayers) {
-                // Pasamos el sessionId para que la DB filtre automáticamente los que ya están dentro
                 const list = await window.apiDB.searchPlayers(name, sessionId);
                 setSearchResults(list || []);
                 setShowDropdown(list.length > 0);
@@ -44,20 +45,32 @@ export default function QuickReplaceModal({ target, sessionId, currentRoster = [
         }, 300);
 
         return () => clearTimeout(delayDebounce);
-    }, [name, sessionId, selectedRaiderData]);
+    }, [name, sessionId, selectedRaiderData, mode]);
 
     const handleSelectResult = (raider) => {
         setName(raider.nickname);
-        setSelectedRaiderData(raider); // Guardamos la info completa (raider_id, etc.)
+        setSelectedRaiderData(raider); 
         setShowDropdown(false);
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
+
+        // ❌ MODO REMOVER (Quitar de la raid y dejar slot vacío)
+        if (mode === 'REMOVE') {
+            onConfirm({
+                name: null,
+                class: null,
+                raiderInId: null, // Pasamos null explícito para que el backend limpie el slot
+                note: note.trim() || 'Retirado de la raid'
+            });
+            return;
+        }
+
+        // 🔄 MODO REEMPLAZAR (Sustituir por otro raider)
         const cleanName = name.trim();
         if (!cleanName) return;
 
-        // 🛡️ CANDADO DE SEGURIDAD INTERNO: Evitar duplicados por escritura manual directa
         const yaEstaEnRaid = currentRoster.some(
             (r) => r && r.name && r.name.toLowerCase() === cleanName.toLowerCase()
         );
@@ -67,14 +80,15 @@ export default function QuickReplaceModal({ target, sessionId, currentRoster = [
             return;
         }
 
-        // Enviamos los datos estructurados al Front original
         onConfirm({
             name: cleanName,
             class: selectedRaiderData ? selectedRaiderData.class : selectedClass,
-            raiderInId: selectedRaiderData ? selectedRaiderData.raider_id : 0, // 0 le dice a la DB que es nuevo
+            raiderInId: selectedRaiderData ? selectedRaiderData.raider_id : 0, 
             note: note.trim()
         });
     };
+
+    const isSubmitDisabled = mode === 'REPLACE' && !name.trim();
 
     return (
         <div className="fixed inset-0 bg-[#16161e]/80 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn font-mono">
@@ -83,94 +97,131 @@ export default function QuickReplaceModal({ target, sessionId, currentRoster = [
                 <div>
                     <div className="text-[10px] uppercase text-[#bb9af7] font-bold tracking-widest">// RE relevo_en_vivo</div>
                     <h3 className="text-sm font-bold text-white mt-1">
-                        Sustituir: <span className="text-gray-400 font-normal">{target.nameOut}</span>
+                        Gestionar Slot: <span className="text-[#ff9e64]">{target.nameOut}</span>
                     </h3>
                 </div>
 
-                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                    {/* INPUT CON BUSCADOR EN TIEMPO REAL */}
-                    <div className="flex flex-col gap-1.5 relative">
-                        <label className="text-[9px] uppercase text-[#565f89] font-bold">Nombre del Entrante</label>
-                        <input 
-                            type="text"
-                            autoFocus
-                            placeholder="Ej: Arthaspro"
-                            value={name}
-                            onChange={(e) => {
-                                setName(e.target.value);
-                                if (selectedRaiderData) setSelectedRaiderData(null); // Resetea si vuelve a escribir
-                            }}
-                            className="bg-[#24283b] border border-[#414868] text-sm text-white p-2.5 rounded-lg outline-none focus:border-[#bb9af7] transition-all w-full"
-                        />
-
-                        {/* LISTA DESPLEGABLE DE COINCIDENCIAS */}
-                        {showDropdown && searchResults.length > 0 && (
-                            <ul className="absolute top-[62px] left-0 w-full bg-[#1f2335] border border-[#414868] rounded-lg shadow-2xl max-h-[160px] overflow-y-auto z-50 divide-y divide-[#24283b]">
-                                {searchResults.map((r) => (
-                                    <li
-                                        key={r.raider_id}
-                                        onClick={() => handleSelectResult(r)}
-                                        className="px-3 py-2 hover:bg-[#2e3440] cursor-pointer flex justify-between items-center text-xs text-[#a9b1d6] transition-colors border-b border-[#24283b]/60 last:border-none"
-                                    >
-                                        <span className="font-bold text-white">{r.nickname}</span>
-                                        <span className="text-[10px] text-[#7aa2f7] bg-[#3d59a1]/30 px-1.5 py-0.5 rounded">
-                                            Gravedad: {r.gravity_total}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
+                {/* SELECTOR DE ACCIÓN (Pestañas) */}
+                {target.raiderOutId && (
+                    <div className="flex bg-[#24283b] p-1 rounded-lg border border-[#414868]/40">
+                        <button
+                            type="button"
+                            onClick={() => setMode('REPLACE')}
+                            className={`flex-1 py-1.5 text-xs font-bold rounded transition-all ${
+                                mode === 'REPLACE' 
+                                    ? 'bg-[#bb9af7] text-[#1a1b26]' 
+                                    : 'text-gray-400 hover:text-white'
+                            }`}
+                        >
+                            🔄 SUSTITUIR
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setMode('REMOVE')}
+                            className={`flex-1 py-1.5 text-xs font-bold rounded transition-all ${
+                                mode === 'REMOVE' 
+                                    ? 'bg-[#f7768e] text-white' 
+                                    : 'text-gray-400 hover:text-[#f7768e]'
+                            }`}
+                        >
+                            ❌ QUITAR DE RAID
+                        </button>
                     </div>
+                )}
 
-                    {/* SELECTOR DE CLASE: Solo visible si el personaje NO existe en la base de datos */}
-                    {!selectedRaiderData && name.trim() !== '' && (
-                        <div className="flex flex-col gap-1.5 border border-[#343b58] p-2.5 rounded-lg bg-[#24283b]/20 animate-fadeIn">
-                            <div className="text-[9px] text-[#e0af68] font-bold uppercase mb-1">
-                                ⚠️ Personaje nuevo detectado. Elige su clase:
+                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                    
+                    {/* INTERFAZ DINÁMICA SEGÚN EL MODO */}
+                    {mode === 'REPLACE' ? (
+                        <>
+                            {/* INPUT CON BUSCADOR EN TIEMPO REAL */}
+                            <div className="flex flex-col gap-1.5 relative">
+                                <label className="text-[9px] uppercase text-[#565f89] font-bold">Nombre del Entrante</label>
+                                <input 
+                                    type="text"
+                                    autoFocus
+                                    placeholder="Ej: Arthaspro"
+                                    value={name}
+                                    onChange={(e) => {
+                                        setName(e.target.value);
+                                        if (selectedRaiderData) setSelectedRaiderData(null);
+                                    }}
+                                    className="bg-[#24283b] border border-[#414868] text-sm text-white p-2.5 rounded-lg outline-none focus:border-[#bb9af7] transition-all w-full"
+                                />
+
+                                {/* LISTA DESPLEGABLE */}
+                                {showDropdown && searchResults.length > 0 && (
+                                    <ul className="absolute top-[62px] left-0 w-full bg-[#1f2335] border border-[#414868] rounded-lg shadow-2xl max-h-[160px] overflow-y-auto z-50 divide-y divide-[#24283b]">
+                                        {searchResults.map((r) => (
+                                            <li
+                                                key={r.raider_id}
+                                                onClick={() => handleSelectResult(r)}
+                                                className="px-3 py-2 hover:bg-[#2e3440] cursor-pointer flex justify-between items-center text-xs text-[#a9b1d6] transition-colors"
+                                            >
+                                                <span className="font-bold text-white">{r.nickname}</span>
+                                                <span className="text-[10px] text-[#7aa2f7] bg-[#3d59a1]/30 px-1.5 py-0.5 rounded">
+                                                    Gravedad: {r.gravity_total}
+                                                </span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
                             </div>
-                            <div className="grid grid-cols-2 gap-1.5">
-                                {CLASS_OPTIONS.map((cls) => {
-                                    const isSelected = selectedClass === cls.id;
-                                    return (
-                                        <button
-                                            key={cls.id}
-                                            type="button"
-                                            onClick={() => setSelectedClass(cls.id)}
-                                            style={{ borderColor: isSelected ? cls.color : '#414868' }}
-                                            className="p-2 rounded text-left text-xs font-bold transition-all flex items-center gap-2 border bg-[#24283b]/50 hover:bg-[#24283b]"
-                                        >
-                                            <span 
-                                                className="w-2 h-2 rounded-full shrink-0" 
-                                                style={{ backgroundColor: cls.color }}
-                                            />
-                                            <span style={{ color: isSelected ? cls.color : '#a9b1d6' }}>
-                                                {cls.label}
-                                            </span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
+
+                            {/* SELECTOR DE CLASE */}
+                            {!selectedRaiderData && name.trim() !== '' && (
+                                <div className="flex flex-col gap-1.5 border border-[#343b58] p-2.5 rounded-lg bg-[#24283b]/20 animate-fadeIn">
+                                    <div className="text-[9px] text-[#e0af68] font-bold uppercase mb-1">
+                                        ⚠️ Personaje nuevo detectado. Elige su clase:
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-1.5">
+                                        {CLASS_OPTIONS.map((cls) => {
+                                            const isSelected = selectedClass === cls.id;
+                                            return (
+                                                <button
+                                                    key={cls.id}
+                                                    type="button"
+                                                    onClick={() => setSelectedClass(cls.id)}
+                                                    style={{ borderColor: isSelected ? cls.color : '#414868' }}
+                                                    className="p-2 rounded text-left text-xs font-bold transition-all flex items-center gap-2 border bg-[#24283b]/50"
+                                                >
+                                                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: cls.color }} />
+                                                    <span style={{ color: isSelected ? cls.color : '#a9b1d6' }}>{cls.label}</span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* AVISO IMPORTADO */}
+                            {selectedRaiderData && (
+                                <div className="p-3 rounded-lg border border-[#9ece6a]/40 bg-[#9ece6a]/10 text-xs text-[#9ece6a] font-medium animate-fadeIn">
+                                    ✓ Personaje histórico detectado. Se utilizarán sus datos sin duplicar.
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        /* VISTA MODO REMOVE */
+                        <div className="p-3 rounded-lg border border-[#f7768e]/30 bg-[#f7768e]/5 text-xs text-[#e0af68] font-medium animate-fadeIn leading-relaxed">
+                            ⚠️ El slot pasará a estar <span className="text-white font-bold">[ VACÍO ]</span>. El jugador de este casillero será removido del roster activo.
                         </div>
                     )}
 
-                    {/* AVISO DE PERSONAJE IMPORTADO */}
-                    {selectedRaiderData && (
-                        <div className="p-3 rounded-lg border border-[#9ece6a]/40 bg-[#9ece6a]/10 text-xs text-[#9ece6a] font-medium animate-fadeIn">
-                            ✓ Personaje histórico detectado. Se utilizarán sus datos de auditoría sin duplicar filas.
-                        </div>
-                    )}
-
+                    {/* CAMPO DE NOTAS ADAPTATIVO */}
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-[9px] uppercase text-[#565f89] font-bold">Nota del reemplazo (opcional)</label>
+                        <label className="text-[9px] uppercase text-[#565f89] font-bold">
+                            {mode === 'REPLACE' ? 'Nota del reemplazo (opcional)' : 'Razón del retiro / Observación'}
+                        </label>
                         <textarea
                             value={note}
                             onChange={(e) => setNote(e.target.value)}
-                            placeholder="Ej: baja el tanque, cambia de grupo, descanso"
+                            placeholder={mode === 'REPLACE' ? "Ej: baja el tanque, cambia de grupo" : "Ej: Desconectado, bajo rendimiento, se tuvo que ir"}
                             className="bg-[#24283b] border border-[#414868] text-sm text-white p-2.5 rounded-lg outline-none focus:border-[#bb9af7] transition-all w-full min-h-[80px] resize-none"
                         />
                     </div>
 
-                    {/* Botones de Acción Inferiores */}
+                    {/* BOTONES DE CONTROL DE CIERRE */}
                     <div className="flex gap-2 mt-2 pt-2 border-t border-[#414868]/40">
                         <button
                             type="button"
@@ -179,12 +230,19 @@ export default function QuickReplaceModal({ target, sessionId, currentRoster = [
                         >
                             CANCELAR
                         </button>
+                        
                         <button
                             type="submit"
-                            disabled={!name.trim()}
-                            className="flex-1 bg-[#bb9af7] disabled:opacity-40 text-[#1a1b26] py-2 rounded-lg text-xs font-black transition-all uppercase"
+                            disabled={isSubmitDisabled}
+                            style={{
+                                backgroundColor: mode === 'REPLACE' ? '#bb9af7' : '#f7768e'
+                            }}
+                            className="flex-1 disabled:opacity-40 text-[#1a1b26] disabled:text-[#1a1b26] py-2 rounded-lg text-xs font-black transition-all uppercase"
                         >
-                            {selectedRaiderData ? 'REEMPLAZAR' : 'CREAR Y REEMPLAZAR'}
+                            {mode === 'REMOVE' 
+                                ? 'RETIRAR JUGADOR' 
+                                : (selectedRaiderData ? 'REEMPLAZAR' : 'CREAR Y REEMPLAZAR')
+                            }
                         </button>
                     </div>
                 </form>

@@ -202,31 +202,66 @@ export default function MatrizTab({ onSelectRaider }) {
             const cleanName = String(newName || '').trim();
             const cleanNote = String(note || '').trim();
 
-            if (!cleanName) {
-                throw new Error('El nombre del reemplazo es obligatorio.');
-            }
+            // 🌟 PASO 1: Determinar el tipo de operación
+            // Si raiderInId es explícitamente null y no hay nombre, es una baja (REMOVE)
+            const isRemovalOp = raiderInId === null && !cleanName; 
 
-            let finalRaiderId = Number(raiderInId || 0);
+            let finalRaiderId = null;
 
-            if (raiderOutId != null) {
-                if (!finalRaiderId) {
-                    finalRaiderId = await window.apiDB.addRaiderToSession(activeSession.id, cleanName, newClass || 'PALADIN', subgroup);
+            // 🌟 PASO 2: Si NO es una baja y el personaje es nuevo, lo creamos primero
+            if (!isRemovalOp) {
+                const incomingId = Number(raiderInId || 0);
+                if (incomingId === 0 && cleanName) {
+                    finalRaiderId = await window.apiDB.addRaiderToSession(
+                        activeSession.id, 
+                        cleanName, 
+                        newClass || 'PALADIN', 
+                        subgroup
+                    );
+                } else {
+                    finalRaiderId = incomingId;
                 }
-                await window.apiDB.reemplazarRaider(
-                    activeSession.id,
-                    Number(raiderOutId),
-                    Number(finalRaiderId),
-                    cleanNote || `Reemplazo en vivo: ${cleanName}`,
-                    subgroup
-                );
-            } else {
-                finalRaiderId = await window.apiDB.addRaiderToSession(activeSession.id, cleanName, newClass || 'PALADIN', subgroup);
             }
 
+            // 🌟 PASO 3: Ejecutar la acción en la Base de Datos
+            if (raiderOutId != null) {
+                // Si el slot tenía un jugador previo...
+                
+                if (isRemovalOp) {
+                    // ❌ CASO: El jugador se va y el slot queda [ VACÍO ]
+                    await window.apiDB.reemplazarRaider(
+                        activeSession.id,
+                        Number(raiderOutId),
+                        null, // Mandamos null posicional para indicarle al backend la baja
+                        cleanNote || 'Retirado de la raid / Baja',
+                        subgroup
+                    );
+                } else {
+                    // 🔄 CASO: Reemplazo normal (entra uno por otro)
+                    await window.apiDB.reemplazarRaider(
+                        activeSession.id,
+                        Number(raiderOutId),
+                        Number(finalRaiderId),
+                        cleanNote || `Reemplazo en vivo: ${cleanName}`,
+                        subgroup
+                    );
+                }
+            } else {
+                // ➕ CASO: El slot estaba vacío de antes y simplemente metemos a alguien directo
+                if (!isRemovalOp && cleanName) {
+                    // Si la función addRaiderToSession ya se ejecutó arriba, no la repetimos
+                    if (!finalRaiderId) {
+                        await window.apiDB.addRaiderToSession(activeSession.id, cleanName, newClass || 'PALADIN', subgroup);
+                    }
+                }
+            }
+
+            // 🌟 PASO 4: Actualizar la interfaz visual
             const updatedRaiders = await window.apiDB.getSessionRaiders(activeSession.id);
             setSessionRaiders(updatedRaiders);
+
         } catch (err) {
-            alert('Error al aplicar el reemplazo en vivo.');
+            alert('Error al aplicar la gestión del slot en vivo.');
             console.error(err);
         } finally {
             setLoading(false);

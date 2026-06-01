@@ -36,7 +36,7 @@ export const DATABASE_SCHEMA = `
         session_id INTEGER NOT NULL,
         raider_id INTEGER NOT NULL,
         subgroup INTEGER DEFAULT 1,
-        status TEXT CHECK(status IN ('ACTIVE', 'REPLACED')) DEFAULT 'ACTIVE',
+        status TEXT CHECK(status IN ('ACTIVE', 'REPLACED', 'REMOVED')) DEFAULT 'ACTIVE',
         replaced_by_id INTEGER,
         change_note TEXT DEFAULT NULL,
         joined_time TEXT NOT NULL DEFAULT (time('now')),

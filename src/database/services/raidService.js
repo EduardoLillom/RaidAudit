@@ -104,10 +104,32 @@ export const raidService = {
         const db = getDB();
         db.exec('BEGIN TRANSACTION;');
         try {
-            // Cierra ciclo del raider saliente
-            sessionRepository.closeRaiderCycle(Number(sessionId), Number(raiderOutId), Number(raiderInId), noteText || 'Reemplazado');
-            // Abre ciclo del entrante
-            sessionRepository.openRaiderCycle(Number(sessionId), Number(raiderInId), Number(subgroup || 1), `Entra a cubrir a un compañero. Nota: ${noteText || ''}`);
+            // Evaluamos si realmente está entrando un raider válido
+            const hasIncomingRaider = raiderInId && Number(raiderInId) !== 0;
+
+            if (hasIncomingRaider) {
+                // 🔄 CASO A: REEMPLAZO NORMAL (Jugador entra por otro)
+                // Cierra ciclo del raider saliente
+                sessionRepository.closeRaiderCycle(Number(sessionId), Number(raiderOutId), Number(raiderInId), noteText || 'Reemplazado');
+                // Abre ciclo del entrante
+                sessionRepository.openRaiderCycle(Number(sessionId), Number(raiderInId), Number(subgroup || 1), `Entra a cubrir a un compañero. Nota: ${noteText || ''}`);
+            } else {
+                // ❌ CASO B: EL JUGADOR SE VA (El slot queda libre)
+                // Congelamos el registro del jugador actual en la tabla intermedia session_raiders
+                // Nota: Si cambiaste el CHECK de tu DB a 'REMOVED' úsalo aquí. Si no, usa 'REPLACED' para no romper el constraint.
+                const query = `
+                    UPDATE session_raiders 
+                    SET status = 'REMOVED', 
+                        change_note = ?, 
+                        left_time = time('now')
+                    WHERE session_id = ? AND raider_id = ? AND status = 'ACTIVE';
+                `;
+                db.prepare(query).run(
+                    noteText || 'Retirado de la raid / Baja', 
+                    Number(sessionId), 
+                    Number(raiderOutId)
+                );
+            }
             
             db.exec('COMMIT;');
             return true;
